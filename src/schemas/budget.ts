@@ -2,14 +2,15 @@ import { IAccount } from './account';
 import { ICategory } from './category';
 export interface IBudget {
   id?: any;
-  month: string;
-  year: string;
+  month: number;
+  year: number;
   rows: Array<IParentRow>;
 }
 
 export interface IParentRow {
   id?: string;
   category: ICategory;
+  isCollapsed: boolean;
   children?: Array<IChildRow>;
 }
 

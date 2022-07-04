@@ -1,25 +1,87 @@
 <template>
+
+  <CategoryModal v-if="showCategoryModal" :category="newCategory" @close-modal="handleCloseCategoryModal" />
+
+  <div class="flex justify-between">
+    <div class="w-full sm:w-1/1 xl:w-3/3">
+      <div class="flex justify-between px-5 py-6 bg-white rounded-md shadow-sm">
+        <div class="flex items-center">
+          <button class="px-2 h-10 w-10 rounded-full hover:bg-gray-100" @click="navigate(-1)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div class="mx-5 flex flex-col justify-center items-center">
+            <h4 class="text-2xl font-semibold text-gray-700">{{ budgetMonth }}</h4>
+            <div class="text-gray-500">{{ budgetYear }}</div>
+          </div>
+          <button class="px-2 h-10 w-10 rounded-full hover:bg-gray-100" @click="navigate(+1)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 " fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex">
+          <div class="mx-5">
+            <h4 class="text-2xl font-semibold text-gray-700">{{ formatCurrency(selectedSummary.budgeted) }}</h4>
+            <div class="text-gray-500">Budgeted</div>
+          </div>
+
+          <div class="mx-5">
+            <h4 class="text-2xl text-gray-400">+</h4>
+          </div>
+
+          <div class="mx-5">
+            <h4 class="text-2xl font-semibold text-gray-700">{{ formatCurrency(selectedSummary.activity) }}</h4>
+            <div class="text-gray-500">Activity</div>
+          </div>
+
+          <div class="mx-5">
+            <h4 class="text-2xl text-gray-400">=</h4>
+          </div>
+
+          <div class="mx-5">
+            <h4 class="text-2xl font-semibold text-gray-700">{{ formatCurrency(selectedSummary.balance) }}</h4>
+            <div class="text-gray-500">Balance</div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+  </div>
+
   <div class="flex flex-col mt-6">
     <div class="py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <div class="inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg">
         <table class="min-w-full table-auto">
           <thead>
             <tr>
-              <th class="w-1/12 py-3 bg-gray-100 border-b border-gray-200"></th>
               <th
-                class="w-5/12 px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Category
+                class="flex items-center w-full px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                <div>Category</div>
+                <button class="pl-2 brightness-150" @click="handleNewCategory(null)">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
               </th>
               <th
-                class="w-2/12  px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="w-min px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Budgeted
               </th>
               <th
-                class="w-2/12  px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="w-min px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Activity
               </th>
               <th
-                class="w-2/12  px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="w-min px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Balance
               </th>
             </tr>
@@ -29,51 +91,75 @@
             <template v-for="(u, index) in store.currentBudget.rows" :key="index">
 
               <tr class="bg-slate-100">
-                <td>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clip-rule="evenodd" />
-                  </svg>
-                </td>
-                <td class="w-3/6 px-2 py-2 border-b border-gray-200 whitespace-nowrap text-left " colspan="4">
-                  <div class="flex items-center">
-                    <div class="text-sm font-bold leading-5 text-gray-900 ">
-                      {{ u.category.name }}
+                <td class="w-auto px-2 py-2 border-b border-gray-200 whitespace-nowrap text-left " colspan="4">
+                  <div class="flex justify-between">
+
+                    <div class="flex items-center">
+                      <div class="px-2 cursor-pointer" @click="u.isCollapsed = !u.isCollapsed">
+                        <svg v-if="u.isCollapsed" xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5 hover:fill-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                        </svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                          fill="currentColor">
+                          <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                      <div class="text-sm font-bold leading-5 text-gray-900 ">
+                        {{ u.category.name }}
+                      </div>
+
+                    </div>
+                    <div>
+                      <div class="px-2">
+                        <button
+                          class="px-2 rounded outline opacity-20 outline-1 outline-blue-400 bg-blue-300 hover:opacity-60"
+                          @click="handleNewCategory(u.category.id)">
+                          <span class="text-xs text-center">New sub-category</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </td>
 
               </tr>
 
-              <template v-if="u.children?.length">
+              <template v-if="u.children?.length && !u.isCollapsed">
                 <tr v-for="(child, cIndex) in u.children" :key="cIndex">
-                  <td class="w-min"><input type="checkbox" name="" id=""></td>
+
                   <td class="w-5/12 px-2 py-2 border-b border-gray-200 whitespace-nowrap text-left">
                     <div class="flex items-center">
-                      <div class="text-sm font-medium leading-5 text-gray-900">
+                      <div class="px-2 pr-6">
+                        <input type="checkbox" aria-label="budget row checkbox"
+                          @change="handleSelectRow($event, child)">
+                      </div>
+                      <div class="text-sm font-medium leading-5 text-gray-700">
                         {{ child.category.name }}
                       </div>
                     </div>
                   </td>
-                  <td class="w-2/12 px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
+                  <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
                     <span
                       class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
-                      {{ child.budgeted?.toFixed(2) }}
+                      {{ formatCurrency(child.budgeted) }}
                     </span>
                   </td>
 
-                  <td class="w-2/12 px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
+                  <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
                     <span
                       class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
-                      {{ child.activity?.toFixed(2) }}
+                      {{ formatCurrency(child.activity) }}
                     </span>
                   </td>
 
-                  <td class="w-2/12 px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
+                  <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
                     <span
                       class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
-                      {{ child.balance?.toFixed(2) }}
+                      {{ formatCurrency(child.balance) }}
                     </span>
                   </td>
                 </tr>
@@ -88,10 +174,89 @@
 </template>
 
 ]<script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import moment from 'moment';
 import { useBudgetStore } from '../store/budget';
+import { IChildRow } from '../schemas/budget';
+import { ICategory } from '../schemas/category';
+import { formatCurrency } from '../utils/currency';
+import CategoryModal from '../components/CategoryModal.vue';
 const store = useBudgetStore();
+
+const selectedRows = ref<Array<IChildRow>>([]);
+
+const handleSelectRow = (event: any, row: IChildRow) => {
+  if (event.target.checked) {
+    selectedRows.value.push(row);
+  }
+  else {
+    selectedRows.value.splice(
+      selectedRows.value.findIndex(r => r.id === row.id), 1
+    )
+  }
+}
+
+const selectedSummary = computed(() => {
+  return selectedRows.value.reduce((pv, cv) => {
+    return {
+      budgeted: pv.budgeted + (cv.budgeted || 0),
+      activity: pv.activity + (cv.activity || 0),
+      balance: pv.balance + (cv.balance || 0),
+    }
+  }, {
+    budgeted: 0,
+    activity: 0,
+    balance: 0
+  })
+});
+
+const budgetMonth = computed(() => {
+  return moment().month(store.currentBudget.month).format('MMMM')
+})
+
+const budgetYear = computed(() => {
+  return moment().year(store.currentBudget.year).format('YYYY')
+})
+
+const navigate = (decreaseOrIncrease: number) => {
+  const { currentMonth, currentYear } = store;
+
+  let newMonth = currentMonth + decreaseOrIncrease;
+  let newYear = currentYear;
+  if (newMonth < 0) {
+    newMonth = 11;
+    newYear--;
+  }
+  else if (newMonth > 11) {
+    newMonth = 0;
+    newYear++;
+  }
+
+  store.selectDate(newMonth, newYear);
+}
+
+const showCategoryModal = ref(false);
+
+const defaultCategory = <ICategory>({
+  name: '',
+  isActive: true,
+});
+
+const newCategory = ref<ICategory>(defaultCategory);
+
+const handleNewCategory = (parentId: any) => {
+
+  if (parentId) {
+    newCategory.value.parentId = parentId;
+  }
+
+  showCategoryModal.value = true;
+}
+
+const handleCloseCategoryModal = () => {
+  newCategory.value = { ...defaultCategory };
+  showCategoryModal.value = false;
+}
 
 
 </script>

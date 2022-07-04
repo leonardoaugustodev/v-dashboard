@@ -1,0 +1,134 @@
+<template>
+
+  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`">
+    <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
+
+    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md">
+      <div
+        class="absolute top-0 right-0 z-50 flex flex-col items-center mt-4 mr-4 text-sm text-white cursor-pointer modal-close">
+        <svg class="text-white fill-current" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+          viewBox="0 0 18 18">
+          <path
+            d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z" />
+        </svg>
+        <span class="text-sm">(Esc)</span>
+      </div>
+
+      <!-- Add margin if you want to see some of the overlay behind the modal-->
+      <div class="px-6 py-4 text-left modal-content">
+        <!--Title-->
+        <div class="flex items-center justify-between pb-3">
+          <p class="text-2xl font-bold">{{ isEdit ? "Edit" : "New" }} Category</p>
+          <div class="z-50 cursor-pointer modal-close" @click="closeModal">
+            <svg class="text-black fill-current" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+              viewBox="0 0 18 18">
+              <path
+                d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z" />
+            </svg>
+          </div>
+        </div>
+
+        <!--Body-->
+        <form>
+          <FormInput type="text" label="Name" v-model="categoryToEdit.name" />
+        </form>
+
+        <!--Footer-->
+        <div class="flex justify-end pt-2">
+          <button @click="closeModal"
+            class="p-3 px-6 py-3 mr-2 text-indigo-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-indigo-400 focus:outline-none">
+            Close
+          </button>
+          <button @click="handleSave"
+            class="px-6 py-3 font-medium tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, ComputedRef, defineProps, defineEmits } from "vue";
+import { useCategoryStore } from "../store/category";
+import { useBudgetStore } from "../store/budget";
+import FormInput from './FormInput.vue'
+import { ICategory } from "../schemas/category";
+import { IBudget, IChildRow, IParentRow } from "../schemas/budget";
+
+const emit = defineEmits(['close-modal'])
+const store = useCategoryStore();
+const budgetStore = useBudgetStore();
+
+const { category } = defineProps<{
+  category?: ICategory
+}>()
+
+const defaultCategory = <ICategory>({
+  name: '',
+  isActive: true,
+});
+
+const categoryToEdit = ref<ICategory>(category || defaultCategory);
+
+const closeModal = () => {
+  categoryToEdit.value = defaultCategory;
+  emit('close-modal');
+}
+
+const isEdit: ComputedRef<boolean> = computed((): boolean => {
+  return categoryToEdit && !!categoryToEdit.value.id;
+})
+
+const handleSave = () => {
+
+  const { parentId } = categoryToEdit.value;
+  const categories = store.categories;
+  const budget: any = budgetStore.budgets.find(b => b.id === budgetStore.currentBudget.id);
+  if (parentId) {
+    // search category, if not found create a new category
+    const index = categories.findIndex(c => (c.name === categoryToEdit.value.name && c.parentId === parentId));
+
+    if (index < 0) {
+      store.newCategory({ ...categoryToEdit.value });
+
+      // add new budget child row
+      const parentRow: any = budget?.rows.find(r => r.id === parentId);
+
+      const childRow: IChildRow = {
+        id: `${Math.random() * 100}`,
+        category: { ...categoryToEdit.value },
+        budgeted: 0,
+        activity: 0,
+        balance: 0,
+      };
+
+      parentRow.children.push(childRow);
+    }
+  }
+  else {
+    const index = categories.findIndex(c => (c.name === categoryToEdit.value.name));
+
+    if (index < 0) {
+      store.newCategory({ ...categoryToEdit.value });
+
+      const parentRow: IParentRow = {
+        id: `${Math.random() * 100}`,
+        category: { ...categoryToEdit.value },
+        isCollapsed: false,
+      };
+
+      budget?.rows.push(parentRow);
+    }
+  }
+
+  closeModal();
+}
+</script>
+
+<style>
+.modal {
+  transition: opacity 0.25s ease;
+}
+</style>
