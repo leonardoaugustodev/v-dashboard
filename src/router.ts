@@ -1,56 +1,45 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
-import Dashboard from "./views/Dashboard.vue";
-import Forms from "./views/Forms.vue";
-import Tables from "./views/Tables.vue";
-import UIElements from "./views/UIElements.vue";
-import Login from "./views/Login.vue";
-import Modal from "./views/Modal.vue";
-import Card from "./views/Card.vue";
-import Blank from "./views/Blank.vue";
-import NotFound from "./views/NotFound.vue";
+import Dashboard from './views/Dashboard.vue';
+import Forms from './views/Forms.vue';
+import Tables from './views/Tables.vue';
+import UIElements from './views/UIElements.vue';
+import Login from './views/Login.vue';
+import Modal from './views/Modal.vue';
+import Card from './views/Card.vue';
+import Blank from './views/Blank.vue';
+import NotFound from './views/NotFound.vue';
+import Budget from './views/Budget.vue';
+import Accounts from './views/Accounts.vue';
+import AccountDetail from './views/AccountDetail.vue';
 
 const routes: RouteRecordRaw[] = [
   {
-    path: "/",
-    name: "Login",
+    path: '/',
+    name: 'Login',
     component: Login,
-    meta: { layout: "empty" },
+    meta: { layout: 'empty' },
   },
   {
-    path: "/dashboard",
-    name: "Dashboard",
+    path: '/dashboard',
+    name: 'Dashboard',
     component: Dashboard,
   },
   {
-    path: "/forms",
-    name: "Forms",
-    component: Forms,
+    path: '/budget',
+    name: 'Budget',
+    component: Budget,
   },
   {
-    path: "/cards",
-    name: "Cards",
-    component: Card,
+    path: '/accounts',
+    name: 'Accounts',
+    component: Accounts,
   },
   {
-    path: "/tables",
-    name: "Tables",
-    component: Tables,
-  },
-  {
-    path: "/ui-elements",
-    name: "UIElements",
-    component: UIElements,
-  },
-  {
-    path: "/modal",
-    name: "Modal",
-    component: Modal,
-  },
-  {
-    path: "/blank",
-    name: "Blank",
-    component: Blank,
+    path: '/accounts/:id',
+    name: 'AccountDetail',
+    component: AccountDetail,
+    strict: true,
   },
 ];
 

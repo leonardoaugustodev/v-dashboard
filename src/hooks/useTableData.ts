@@ -23,6 +23,15 @@ export interface IWideTableData {
   role: string;
 }
 
+export interface IAccountTableData {
+  id: string;
+  name: string;
+  type: string;
+  on_budget: boolean;
+  status: string;
+  balance: number;
+}
+
 export function useTableData() {
   const simpleTableData = ref<ISimpleTableData[]>([
     { city: 'New York', totalOrders: '200,120' },
@@ -81,9 +90,21 @@ export function useTableData() {
     }))
   );
 
+  const accountTableData = ref<IAccountTableData[]>(
+    [...Array(10).keys()].map((element, index) => ({
+      id: `${index}`,
+      name: `Account ${index}`,
+      type: 'Checking',
+      on_budget: true,
+      status: 'Open',
+      balance: Math.random() * 100000
+    }))
+  );
+
   return {
     simpleTableData,
     paginatedTableData,
     wideTableData,
+    accountTableData,
   };
 }
