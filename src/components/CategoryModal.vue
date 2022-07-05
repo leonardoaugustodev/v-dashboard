@@ -1,9 +1,9 @@
 <template>
 
-  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`">
+  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal" >
     <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
-    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md">
+    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md" >
       <div
         class="absolute top-0 right-0 z-50 flex flex-col items-center mt-4 mr-4 text-sm text-white cursor-pointer modal-close">
         <svg class="text-white fill-current" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -62,7 +62,7 @@ const store = useCategoryStore();
 const budgetStore = useBudgetStore();
 
 const { category } = defineProps<{
-  category?: ICategory
+  category: ICategory
 }>()
 
 const defaultCategory = <ICategory>({
@@ -70,20 +70,20 @@ const defaultCategory = <ICategory>({
   isActive: true,
 });
 
-const categoryToEdit = ref<ICategory>(category || defaultCategory);
+let categoryToEdit = <ICategory>(category);
 
 const closeModal = () => {
-  categoryToEdit.value = defaultCategory;
+  categoryToEdit = defaultCategory;
   emit('close-modal');
 }
 
 const isEdit: ComputedRef<boolean> = computed((): boolean => {
-  return categoryToEdit && !!categoryToEdit.value.id;
+  return categoryToEdit && !!categoryToEdit.id;
 })
 
 const handleSave = () => {
 
-  const { parentId } = categoryToEdit.value;
+  const { parentId } = categoryToEdit;
   const categories = store.categories;
   const budget: any = budgetStore.budgets.find(b => b.id === budgetStore.currentBudget.id);
   if (parentId) {
@@ -91,14 +91,14 @@ const handleSave = () => {
     const index = categories.findIndex(c => (c.name === categoryToEdit.value.name && c.parentId === parentId));
 
     if (index < 0) {
-      store.newCategory({ ...categoryToEdit.value });
+      const storedCategory = store.newCategory({ ...categoryToEdit.value });
 
       // add new budget child row
       const parentRow: any = budget?.rows.find(r => r.id === parentId);
 
       const childRow: IChildRow = {
         id: `${Math.random() * 100}`,
-        category: { ...categoryToEdit.value },
+        category: storedCategory,
         budgeted: 0,
         activity: 0,
         balance: 0,
@@ -108,16 +108,17 @@ const handleSave = () => {
     }
   }
   else {
-    const index = categories.findIndex(c => (c.name === categoryToEdit.value.name));
+    const index = categories.findIndex(c => (c.name === categoryToEdit.name));
 
     if (index < 0) {
-      store.newCategory({ ...categoryToEdit.value });
+      const storedCategory = store.newCategory({ ...categoryToEdit });
 
       const parentRow: IParentRow = {
         id: `${Math.random() * 100}`,
-        category: { ...categoryToEdit.value },
+        category: storedCategory,
         isCollapsed: false,
       };
+      console.log(parentRow);
 
       budget?.rows.push(parentRow);
     }

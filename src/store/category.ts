@@ -54,6 +54,10 @@ export const useCategoryStore = defineStore('category', {
   actions: {
     newCategory(category: ICategory) {
       this.categories.push(category);
+      return {
+        id: `${Math.random() * 1000}`,
+        ...category
+      }
     },
   },
 });
