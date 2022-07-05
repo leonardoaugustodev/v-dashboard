@@ -242,19 +242,21 @@ const defaultCategory = <ICategory>({
   isActive: true,
 });
 
-let newCategory = <ICategory>({});
+let newCategory = ref(<ICategory>({}));
 
 const handleNewCategory = (parentId: any) => {
   if (parentId) {
-    console.log('parentId', parentId);
-    newCategory.parentId = parentId;
+    newCategory.value.parentId = parentId;
   }
 
   showCategoryModal.value = true;
 }
 
 const handleCloseCategoryModal = () => {
-  newCategory = { ...defaultCategory };
+  newCategory.value = {
+    name: '',
+    isActive: true,
+  };
   showCategoryModal.value = false;
 }
 

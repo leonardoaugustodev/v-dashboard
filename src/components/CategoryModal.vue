@@ -65,15 +65,9 @@ const { category } = defineProps<{
   category: ICategory
 }>()
 
-const defaultCategory = <ICategory>({
-  name: '',
-  isActive: true,
-});
-
 let categoryToEdit = <ICategory>(category);
 
 const closeModal = () => {
-  categoryToEdit = defaultCategory;
   emit('close-modal');
 }
 
@@ -88,13 +82,15 @@ const handleSave = () => {
   const budget: any = budgetStore.budgets.find(b => b.id === budgetStore.currentBudget.id);
   if (parentId) {
     // search category, if not found create a new category
-    const index = categories.findIndex(c => (c.name === categoryToEdit.value.name && c.parentId === parentId));
+    const index = categories.findIndex(c => (c.name === categoryToEdit.name && c.parentId === parentId));
 
     if (index < 0) {
-      const storedCategory = store.newCategory({ ...categoryToEdit.value });
+      const storedCategory = store.newCategory({ ...categoryToEdit });
 
       // add new budget child row
-      const parentRow: any = budget?.rows.find(r => r.id === parentId);
+      const parentRow: any = budget?.rows.find(r => r.id === parentId); //r.id tem que ser id da row
+      console.log('parentId', parentId);
+      console.log('parentRow', parentRow);
 
       const childRow: IChildRow = {
         id: `${Math.random() * 100}`,
@@ -117,6 +113,7 @@ const handleSave = () => {
         id: `${Math.random() * 100}`,
         category: storedCategory,
         isCollapsed: false,
+        children: []
       };
       console.log(parentRow);
 
