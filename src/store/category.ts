@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { ICategory } from '../schemas/category';
+import { db } from '../database';
 
 export const useCategoryStore = defineStore('category', {
   state: () => {
@@ -49,14 +50,39 @@ export const useCategoryStore = defineStore('category', {
       ]),
     };
   },
-  getters: {
-  },
+  getters: {},
   actions: {
-    newCategory(category: ICategory) {
-      this.categories.push(category);
-      return {
-        id: `${Math.random() * 1000}`,
-        ...category
+    async getOrAddCategory(category: ICategory) {
+      try {
+        const { parentId } = category;
+        let index;
+        if (parentId) {
+          index = this.categories.findIndex(
+            (c) => c.name === category.name && c.parentId === parentId
+          );
+        } else {
+          index = this.categories.findIndex((c) => c.name === category.name);
+        }
+
+        let result;
+        if (index < 0) {
+          result = await db.post(category);
+
+          const { id, rev } = result;
+          category = {
+            id,
+            rev,
+            ...category,
+          };
+
+          this.categories.push(category);
+        } else {
+          category = await db.get(this.categories[index].id);
+        }
+
+        return category;
+      } catch (err) {
+        console.log(err);
       }
     },
   },

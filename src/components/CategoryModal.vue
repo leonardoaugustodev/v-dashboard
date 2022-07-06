@@ -1,9 +1,9 @@
 <template>
 
-  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal" >
+  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
     <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
-    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md" >
+    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md">
       <div
         class="absolute top-0 right-0 z-50 flex flex-col items-center mt-4 mr-4 text-sm text-white cursor-pointer modal-close">
         <svg class="text-white fill-current" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -61,8 +61,9 @@ const emit = defineEmits(['close-modal'])
 const store = useCategoryStore();
 const budgetStore = useBudgetStore();
 
-const { category } = defineProps<{
-  category: ICategory
+const { category, parentRowId } = defineProps<{
+  category: ICategory,
+  parentRowId: any
 }>()
 
 let categoryToEdit = <ICategory>(category);
@@ -75,22 +76,17 @@ const isEdit: ComputedRef<boolean> = computed((): boolean => {
   return categoryToEdit && !!categoryToEdit.id;
 })
 
-const handleSave = () => {
+const handleSave = async () => {
+  try {
 
-  const { parentId } = categoryToEdit;
-  const categories = store.categories;
-  const budget: any = budgetStore.budgets.find(b => b.id === budgetStore.currentBudget.id);
-  if (parentId) {
-    // search category, if not found create a new category
-    const index = categories.findIndex(c => (c.name === categoryToEdit.name && c.parentId === parentId));
+    const budget: any = budgetStore.budgets.find(b => b.id === budgetStore.currentBudget.id);
 
-    if (index < 0) {
-      const storedCategory = store.newCategory({ ...categoryToEdit });
+    const storedCategory = await store.getOrAddCategory({ ...categoryToEdit });
 
-      // add new budget child row
-      const parentRow: any = budget?.rows.find(r => r.id === parentId); //r.id tem que ser id da row
-      console.log('parentId', parentId);
-      console.log('parentRow', parentRow);
+    console.log('parentRowId', parentRowId);
+
+    if (parentRowId) {
+      const parentRow = budget?.rows.find(r => r.id === parentRowId); //r.id tem que ser id da row
 
       const childRow: IChildRow = {
         id: `${Math.random() * 100}`,
@@ -102,26 +98,20 @@ const handleSave = () => {
 
       parentRow.children.push(childRow);
     }
-  }
-  else {
-    const index = categories.findIndex(c => (c.name === categoryToEdit.name));
-
-    if (index < 0) {
-      const storedCategory = store.newCategory({ ...categoryToEdit });
-
+    else {
       const parentRow: IParentRow = {
         id: `${Math.random() * 100}`,
         category: storedCategory,
         isCollapsed: false,
         children: []
       };
-      console.log(parentRow);
 
       budget?.rows.push(parentRow);
     }
-  }
-
-  closeModal();
+    closeModal();
+  } catch (err) {
+    console.log(err);
+  } 
 }
 </script>
 

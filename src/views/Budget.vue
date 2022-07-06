@@ -1,6 +1,6 @@
 <template>
 
-  <CategoryModal v-if="showCategoryModal" :category="newCategory" @close-modal="handleCloseCategoryModal" />
+  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId" @close-modal="handleCloseCategoryModal" />
 
   <div class="flex justify-between">
     <div class="w-full sm:w-1/1 xl:w-3/3">
@@ -118,7 +118,7 @@
                       <div class="px-2">
                         <button
                           class="px-2 rounded outline opacity-20 outline-1 outline-blue-400 bg-blue-300 hover:opacity-60"
-                          @click="handleNewCategory(u.category.id)">
+                          @click="handleNewCategory(u.category.id, u.id)">
                           <span class="text-xs text-center">New sub-category</span>
                         </button>
                       </div>
@@ -236,6 +236,7 @@ const navigate = (decreaseOrIncrease: number) => {
 }
 
 const showCategoryModal = ref(false);
+const parentRowId = ref();
 
 const defaultCategory = <ICategory>({
   name: '',
@@ -244,11 +245,12 @@ const defaultCategory = <ICategory>({
 
 let newCategory = ref(<ICategory>({}));
 
-const handleNewCategory = (parentId: any) => {
+const handleNewCategory = (parentId: any, pRowId: any) => {
   if (parentId) {
     newCategory.value.parentId = parentId;
   }
 
+  parentRowId.value = pRowId;
   showCategoryModal.value = true;
 }
 
