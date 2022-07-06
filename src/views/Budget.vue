@@ -1,6 +1,7 @@
 <template>
 
-  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId" @close-modal="handleCloseCategoryModal" />
+  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId"
+    @close-modal="handleCloseCategoryModal" />
 
   <div class="flex justify-between">
     <div class="w-full sm:w-1/1 xl:w-3/3">
@@ -64,7 +65,7 @@
               <th
                 class="flex items-center w-full px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 <div>Category</div>
-                <button class="pl-2 brightness-150" @click="handleNewCategory(null)">
+                <button class="pl-2 brightness-150" @click="handleNewCategory(null, null)">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -88,7 +89,7 @@
           </thead>
 
           <tbody class="bg-white">
-            <template v-for="(u, index) in store.currentBudget.rows" :key="index">
+            <template v-for="(u, index) in store.currentBudget?.rows" :key="index">
 
               <tr class="bg-slate-100">
                 <td class="w-auto px-2 py-2 border-b border-gray-200 whitespace-nowrap text-left " colspan="4">
@@ -110,7 +111,7 @@
                         </svg>
                       </div>
                       <div class="text-sm font-bold leading-5 text-gray-900 ">
-                        {{ u.category.name }}
+                        {{ u.category?.name }}
                       </div>
 
                     </div>
@@ -118,7 +119,7 @@
                       <div class="px-2">
                         <button
                           class="px-2 rounded outline opacity-20 outline-1 outline-blue-400 bg-blue-300 hover:opacity-60"
-                          @click="handleNewCategory(u.category.id, u.id)">
+                          @click="handleNewCategory(u.category?._id, u._id)">
                           <span class="text-xs text-center">New sub-category</span>
                         </button>
                       </div>
@@ -138,7 +139,7 @@
                           @change="handleSelectRow($event, child)">
                       </div>
                       <div class="text-sm font-medium leading-5 text-gray-700">
-                        {{ child.category.name }}
+                        {{ child.category?.name }}
                       </div>
                     </div>
                   </td>
@@ -173,15 +174,18 @@
   </div>
 </template>
 
-]<script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed } from 'vue';
 import moment from 'moment';
 import { useBudgetStore } from '../store/budget';
 import { IChildRow } from '../schemas/budget';
 import { ICategory } from '../schemas/category';
 import { formatCurrency } from '../utils/currency';
+import { generateId } from '../utils/hash';
 import CategoryModal from '../components/CategoryModal.vue';
+import { useCategoryStore } from '../store/category';
 const store = useBudgetStore();
+const categoryStore = useCategoryStore();
 
 const selectedRows = ref<Array<IChildRow>>([]);
 
@@ -211,11 +215,11 @@ const selectedSummary = computed(() => {
 });
 
 const budgetMonth = computed(() => {
-  return moment().month(store.currentBudget.month).format('MMMM')
+  return moment().month(store.currentBudget?.month).format('MMMM')
 })
 
 const budgetYear = computed(() => {
-  return moment().year(store.currentBudget.year).format('YYYY')
+  return moment().year(store.currentBudget?.year || new Date().getFullYear()).format('YYYY')
 })
 
 const navigate = (decreaseOrIncrease: number) => {
@@ -241,6 +245,7 @@ const parentRowId = ref();
 const defaultCategory = <ICategory>({
   name: '',
   isActive: true,
+  type: 'category',
 });
 
 let newCategory = ref(<ICategory>({}));
@@ -258,8 +263,15 @@ const handleCloseCategoryModal = () => {
   newCategory.value = {
     name: '',
     isActive: true,
+    type: 'category',
   };
   showCategoryModal.value = false;
+}
+
+const returnCategoryById = (categoryId: string) => {
+  return categoryStore.categories.find(
+    (cat) => cat._id === categoryId
+  );
 }
 
 

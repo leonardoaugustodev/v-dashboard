@@ -7,6 +7,8 @@ import { db } from './database';
 
 import DashboardLayout from './components/DashboardLayout.vue';
 import EmptyLayout from './components/EmptyLayout.vue';
+import { useCategoryStore } from './store/category';
+import { useBudgetStore } from './store/budget';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -19,7 +21,12 @@ app.use(pinia);
 
 app.mount('#app');
 
-
 app.config.globalProperties.appName = 'Moneylee';
 app.config.globalProperties.$router = router;
 app.config.globalProperties.$db = db;
+
+const categoryStore = useCategoryStore();
+categoryStore.loadCategories();
+
+const budgetStore = useBudgetStore();
+budgetStore.loadBudgets();

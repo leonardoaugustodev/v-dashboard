@@ -56,9 +56,10 @@ import { useBudgetStore } from "../store/budget";
 import FormInput from './FormInput.vue'
 import { ICategory } from "../schemas/category";
 import { IBudget, IChildRow, IParentRow } from "../schemas/budget";
+import { generateId } from '../utils/hash';
 
 const emit = defineEmits(['close-modal'])
-const store = useCategoryStore();
+const categoryStore = useCategoryStore();
 const budgetStore = useBudgetStore();
 
 const { category, parentRowId } = defineProps<{
@@ -73,40 +74,24 @@ const closeModal = () => {
 }
 
 const isEdit: ComputedRef<boolean> = computed((): boolean => {
-  return categoryToEdit && !!categoryToEdit.id;
+  return categoryToEdit && !!categoryToEdit._id;
 })
 
 const handleSave = async () => {
   try {
 
-    const budget: any = budgetStore.budgets.find(b => b.id === budgetStore.currentBudget.id);
+    const budget: any = budgetStore.budgets.find(b => b._id === budgetStore.currentBudget?._id);
 
-    const storedCategory = await store.getOrAddCategory({ ...categoryToEdit });
+    const storedCategory = await categoryStore.getOrAddCategory({ ...categoryToEdit });
+    if(!storedCategory) return;
 
     console.log('parentRowId', parentRowId);
 
     if (parentRowId) {
-      const parentRow = budget?.rows.find(r => r.id === parentRowId); //r.id tem que ser id da row
-
-      const childRow: IChildRow = {
-        id: `${Math.random() * 100}`,
-        category: storedCategory,
-        budgeted: 0,
-        activity: 0,
-        balance: 0,
-      };
-
-      parentRow.children.push(childRow);
+      budgetStore.addChildRow(parentRowId, storedCategory._id);
     }
     else {
-      const parentRow: IParentRow = {
-        id: `${Math.random() * 100}`,
-        category: storedCategory,
-        isCollapsed: false,
-        children: []
-      };
-
-      budget?.rows.push(parentRow);
+      budgetStore.addParentRow(storedCategory._id)
     }
     closeModal();
   } catch (err) {
