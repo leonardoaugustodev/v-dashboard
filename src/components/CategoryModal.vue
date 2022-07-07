@@ -30,7 +30,7 @@
 
         <!--Body-->
         <form>
-          <FormInput type="text" label="Name" v-model="categoryToEdit.name" />
+          <FormInput type="text" ref="modalInput" label="Name" v-model="categoryToEdit.name" />
         </form>
 
         <!--Footer-->

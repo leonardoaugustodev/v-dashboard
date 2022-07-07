@@ -175,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import moment from 'moment';
 import { useBudgetStore } from '../store/budget';
 import { IChildRow } from '../schemas/budget';
@@ -250,6 +250,7 @@ const defaultCategory = <ICategory>({
 });
 
 let newCategory = ref(<ICategory>({}));
+const modalInput = ref(null)
 
 const handleNewCategory = (parentId: any, pRowId: any) => {
   if (parentId) {
@@ -258,6 +259,10 @@ const handleNewCategory = (parentId: any, pRowId: any) => {
 
   parentRowId.value = pRowId;
   showCategoryModal.value = true;
+
+  nextTick(function () {
+    modalInput.focus()
+  })
 }
 
 const handleCloseCategoryModal = () => {
