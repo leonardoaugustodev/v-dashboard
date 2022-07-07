@@ -26,6 +26,20 @@ export const useBudgetStore = defineStore('budget', {
             (cat) => cat._id === row.categoryId
           );
 
+          if(row.children){
+            row.children = row.children?.map(ch => {
+              const category = categoryStore.categories.find(
+                (cat) => cat._id === ch.categoryId
+              );
+
+              return {
+                category,
+                ...ch,
+              };
+
+            })
+          }
+
           return {
             category,
             ...row,
@@ -106,6 +120,7 @@ export const useBudgetStore = defineStore('budget', {
         // Retrieve budget
         const currentBudget = { ...this.currentBudget };
         const parentRow = currentBudget.rows?.find(row => row._id === parentId);
+        
 
         if (currentBudget && parentRow) {
           const childRow: IChildRow = {
@@ -121,8 +136,10 @@ export const useBudgetStore = defineStore('budget', {
 
           parentRow.children.push(childRow);
 
+          console.log(parentRow);
+
           // Post to db
-          await db.put(childRow);
+          await db.put(currentBudget);
 
           this.loadBudgets();
         }

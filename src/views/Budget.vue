@@ -215,7 +215,8 @@ const selectedSummary = computed(() => {
 });
 
 const budgetMonth = computed(() => {
-  return moment().month(store.currentBudget?.month).format('MMMM')
+  let currentMonth = store.currentBudget?.month || new Date().getMonth();
+  return moment().month(currentMonth).format('MMMM')
 })
 
 const budgetYear = computed(() => {
