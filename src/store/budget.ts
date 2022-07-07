@@ -129,6 +129,7 @@ export const useBudgetStore = defineStore('budget', {
         if (currentBudget && parentRow) {
           const childRow: IChildRow = {
             _id: generateId('childBudgetRow'),
+            budgetId: currentBudget._id,
             parentId,
             categoryId,
             budgeted: 0,
@@ -149,6 +150,17 @@ export const useBudgetStore = defineStore('budget', {
         }
       } catch (err) {
         console.log(err);
+      }
+    },
+    async updateChildRow(childRow: IChildRow) {
+      try {
+        console.log(childRow);
+        const result = await db.get(childRow._id);
+
+        console.log(result);
+
+      } catch (err) {
+        console.error(err);
       }
     },
     async cloneBudget(newMonth?: number, newYear?: number) {

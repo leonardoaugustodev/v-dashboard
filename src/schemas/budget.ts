@@ -18,6 +18,7 @@ export interface IParentRow extends IPouchDB{
 export interface IChildRow extends IPouchDB{
   categoryId?: string;
   category?: ICategory;
+  budgetId?: string;
   parentId?: string;
   budgeted?: number;
   activity?: number;

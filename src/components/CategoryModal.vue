@@ -30,7 +30,8 @@
 
         <!--Body-->
         <form>
-          <FormInput type="text" ref="modalInput" label="Name" v-model="categoryToEdit.name" />
+          <input type="text" ref="modalInput" v-model="categoryToEdit.name"
+            class="form-input w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500" />
         </form>
 
         <!--Footer-->
@@ -50,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, ComputedRef, defineProps, defineEmits } from "vue";
+import { ref, computed, ComputedRef, nextTick, onMounted } from "vue";
 import { useCategoryStore } from "../store/category";
 import { useBudgetStore } from "../store/budget";
 import FormInput from './FormInput.vue'
@@ -68,6 +69,7 @@ const { category, parentRowId } = defineProps<{
 }>()
 
 let categoryToEdit = <ICategory>(category);
+const modalInput = ref(null)
 
 const closeModal = () => {
   emit('close-modal');
@@ -83,7 +85,7 @@ const handleSave = async () => {
     const budget: any = budgetStore.budgets.find(b => b._id === budgetStore.currentBudget?._id);
 
     const storedCategory = await categoryStore.getOrAddCategory({ ...categoryToEdit });
-    if(!storedCategory) return;
+    if (!storedCategory) return;
 
     console.log('parentRowId', parentRowId);
 
@@ -96,8 +98,15 @@ const handleSave = async () => {
     closeModal();
   } catch (err) {
     console.log(err);
-  } 
+  }
 }
+
+onMounted(() => {
+  nextTick(() => {
+    modalInput.value.focus();
+  })
+});
+
 </script>
 
 <style>

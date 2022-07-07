@@ -130,40 +130,7 @@
               </tr>
 
               <template v-if="u.children?.length && !u.isCollapsed">
-                <tr v-for="(child, cIndex) in u.children" :key="cIndex">
-
-                  <td class="w-5/12 px-2 py-2 border-b border-gray-200 whitespace-nowrap text-left">
-                    <div class="flex items-center">
-                      <div class="px-2 pr-6">
-                        <input type="checkbox" aria-label="budget row checkbox"
-                          @change="handleSelectRow($event, child)">
-                      </div>
-                      <div class="text-sm font-medium leading-5 text-gray-700">
-                        {{ child.category?.name }}
-                      </div>
-                    </div>
-                  </td>
-                  <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
-                    <span
-                      class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
-                      {{ formatCurrency(child.budgeted) }}
-                    </span>
-                  </td>
-
-                  <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
-                    <span
-                      class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
-                      {{ formatCurrency(child.activity) }}
-                    </span>
-                  </td>
-
-                  <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
-                    <span
-                      class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
-                      {{ formatCurrency(child.balance) }}
-                    </span>
-                  </td>
-                </tr>
+                <BudgetChildRow v-for="(child, cIndex) in u.children" :key="cIndex" :row="child" />
               </template>
             </template>
 
@@ -184,6 +151,7 @@ import { formatCurrency } from '../utils/currency';
 import { generateId } from '../utils/hash';
 import CategoryModal from '../components/CategoryModal.vue';
 import { useCategoryStore } from '../store/category';
+import BudgetChildRow from '../components/BudgetChildRow.vue';
 const store = useBudgetStore();
 const categoryStore = useCategoryStore();
 
@@ -250,7 +218,7 @@ const defaultCategory = <ICategory>({
 });
 
 let newCategory = ref(<ICategory>({}));
-const modalInput = ref(null)
+
 
 const handleNewCategory = (parentId: any, pRowId: any) => {
   if (parentId) {
@@ -260,9 +228,6 @@ const handleNewCategory = (parentId: any, pRowId: any) => {
   parentRowId.value = pRowId;
   showCategoryModal.value = true;
 
-  nextTick(function () {
-    modalInput.focus()
-  })
 }
 
 const handleCloseCategoryModal = () => {
