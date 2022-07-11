@@ -1,7 +1,7 @@
 <template>
 
   <div :class="`modal ${!open && 'opacity-0 pointer-events-none'
-  } z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`">
+  } z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
     <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
     <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md">
@@ -31,14 +31,20 @@
 
         <!--Body-->
         <form>
+          <label class="block my-2">
+            <span class="block mb-1 text-sm font-medium text-slate-700">Name</span>
 
-          <FormInput type="text" label="Name" v-model="accountToEdit.name" />
+            <input type="text" v-model="accountToEdit.name" ref="labelInput"
+              class="form-input w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500" />
+          </label>
 
           <label class="block my-2">
             <span class="block mb-1 text-sm font-medium text-slate-700">Type</span>
             <select type="text"
               class="form-select w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500">
-              <option v-for="(type, index) in store.accountTypes" :value="type.value" :key="type.value">{{ type.label }}
+              <option v-for="(type, index) in accountStore.accountTypes" :value="type.value" :key="type.value">{{
+                  type.label
+              }}
               </option>
             </select>
             <!-- 
@@ -57,7 +63,7 @@
             class="p-3 px-6 py-3 mr-2 text-indigo-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-indigo-400 focus:outline-none">
             Close
           </button>
-          <button @click="closeModal"
+          <button @click="handleSave"
             class="px-6 py-3 font-medium tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
             Save
           </button>
@@ -68,28 +74,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, ComputedRef, defineProps, defineEmits } from "vue";
+import { ref, computed, ComputedRef, nextTick, onMounted } from "vue";
+import { IAccount } from "../schemas/account";
 import { useAccountStore } from "../store/account";
 import FormInput from './FormInput.vue'
-import { IAccount, useAccount } from '../hooks/useAccount';
 
 const emit = defineEmits(['close-modal'])
-const store = useAccountStore();
+const accountStore = useAccountStore();
 const { open, account } = defineProps<{
   open: boolean,
-  account?: IAccount
+  account: IAccount
 }>()
 
-const accountToEdit = ref<IAccount>(account || useAccount().defaultAccount);
-
+const accountToEdit = ref<IAccount>(account);
+const labelInput = ref(null);
 const closeModal = () => {
-  accountToEdit.value = useAccount().defaultAccount;
+  // accountToEdit.value = useAccount().defaultAccount;
   emit('close-modal');
 }
 
-const isEdit: ComputedRef<boolean> = computed((): boolean => {
-  return accountToEdit && !!accountToEdit.value.id ;
-})
+const isEdit = computed((): boolean => {
+  return account && !!account._id;
+});
+
+const handleSave = () => {
+  accountStore.saveAccount(account || accountToEdit.value);
+  closeModal();
+}
+
+onMounted(() => {
+  nextTick(() => {
+    if (labelInput && labelInput.value) {
+      labelInput.value.focus();
+    }
+  })
+});
 </script>
 
 <style>

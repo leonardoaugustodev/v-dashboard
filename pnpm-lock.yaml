@@ -10,18 +10,18 @@ specifiers:
   '@vitejs/plugin-vue': ^1.6.0
   '@vue/compiler-sfc': ^3.2.6
   autoprefixer: ^10.4.2
-  crypto: ^1.0.1
-  crypto-ts: ^1.0.2
   events: ^3.3.0
   moment: ^2.29.3
   pinia: ^2.0.14
+  pinia-plugin-persistedstate: ^1.6.1
   postcss: ^8.4.7
   pouchdb: ^7.3.0
+  pouchdb-find: ^7.3.0
+  relational-pouch: ^4.0.0
   tailwindcss: ^3.0.23
   typescript: ^4.3.2
   vite: ^2.5.1
   vue: ^3.2.6
-  vue-cryptojs: ^2.3.0
   vue-router: '4'
   vue-tsc: ^0.3.0
 
@@ -32,14 +32,14 @@ dependencies:
   '@tailwindcss/typography': 0.5.2_tailwindcss@3.0.23
   '@types/node': 18.0.3
   '@types/pouchdb': 6.4.0
-  crypto: 1.0.1
-  crypto-ts: 1.0.2
   events: 3.3.0
   moment: 2.29.3
   pinia: 2.0.14_yiky6a7nq42a76m3cgtakyoff4
+  pinia-plugin-persistedstate: 1.6.1_pinia@2.0.14
   pouchdb: 7.3.0
+  pouchdb-find: 7.3.0
+  relational-pouch: 4.0.0_pouchdb-find@7.3.0
   vue: 3.2.31
-  vue-cryptojs: 2.3.0_vue@3.2.31
   vue-router: 4.0.12_vue@3.2.31
 
 devDependencies:
@@ -675,24 +675,6 @@ packages:
       parse-json: 5.2.0
       path-type: 4.0.0
       yaml: 1.10.2
-
-  /crypto-js/4.1.1:
-    resolution: {integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==}
-    dev: false
-
-  /crypto-ts/1.0.2:
-    resolution: {integrity: sha512-TcBWwF8ghYhVd/qPSwvY4nsbDZRN/PVxQ1Uc8ryRLiX4M4C5XSPyIhVgR4M5mIhrQEnWIktLcrv+FIqhKk2t3g==}
-    peerDependencies:
-      '@angular/common': '>= 5.0.0'
-      '@angular/core': '>= 5.0.0'
-    dependencies:
-      tslib: 1.14.1
-    dev: false
-
-  /crypto/1.0.1:
-    resolution: {integrity: sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==}
-    deprecated: This package is no longer supported. It's now a built-in Node module. If you've depended on crypto, you should switch to the one that's built-in.
-    dev: false
 
   /cssesc/3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
@@ -1437,6 +1419,14 @@ packages:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
 
+  /pinia-plugin-persistedstate/1.6.1_pinia@2.0.14:
+    resolution: {integrity: sha512-4re0ZO5KgqDnSNWX2RhJVIsIYvH+uaEGTN+UOx34mb7fVoE8A3CfB9QhbMT3Zn7ZSBXTfT2cgI/w7cLq2zNQMw==}
+    peerDependencies:
+      pinia: ^2.0.0
+    dependencies:
+      pinia: 2.0.14_yiky6a7nq42a76m3cgtakyoff4
+    dev: false
+
   /pinia/2.0.14_yiky6a7nq42a76m3cgtakyoff4:
     resolution: {integrity: sha512-0nPuZR4TetT/WcLN+feMSjWJku3SQU7dBbXC6uw+R6FLQJCsg+/0pzXyD82T1FmAYe0lsx+jnEDQ1BLgkRKlxA==}
     peerDependencies:
@@ -1502,6 +1492,101 @@ packages:
       nanoid: 3.3.1
       picocolors: 1.0.0
       source-map-js: 1.0.2
+
+  /pouchdb-abstract-mapreduce/7.3.0:
+    resolution: {integrity: sha512-+2fVt3SDh7D776lIGbYZOsKX5js1aUyUw7iJaTGitxSdQ2ObWSTrr3SUrj5Qo1CkgPXwRM3Tdoq/53JYAa2qCA==}
+    dependencies:
+      pouchdb-binary-utils: 7.3.0
+      pouchdb-collate: 7.3.0
+      pouchdb-collections: 7.3.0
+      pouchdb-errors: 7.3.0
+      pouchdb-fetch: 7.3.0
+      pouchdb-mapreduce-utils: 7.3.0
+      pouchdb-md5: 7.3.0
+      pouchdb-utils: 7.3.0
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /pouchdb-binary-utils/7.3.0:
+    resolution: {integrity: sha512-xvBH/XGHGcou2vkEzszJxkCc7YElfRUrkLUg51Jbdmh1mogLDUO0bU3Tj6TOIIJfRkQrU/HV+dDkMAhsil0amQ==}
+    dependencies:
+      buffer-from: 1.1.2
+    dev: false
+
+  /pouchdb-collate/7.3.0:
+    resolution: {integrity: sha512-ys7rXKtEr6cfghgUjknwFJiOkITebV6JmeTybJKCzMV0r2luXu0OoPQsKVpE/wbM/3F5LxfpbFKGFpPcfGMvTA==}
+    dev: false
+
+  /pouchdb-collections/7.3.0:
+    resolution: {integrity: sha512-Xr54m2+fErShXn+qAT4xwqJ+8NwddNPeTMJT4z4k1sZsrwfHmZsWbsKAyGPMF04eQaaU+7DDRMciu2VzaBUXyg==}
+    dev: false
+
+  /pouchdb-errors/7.3.0:
+    resolution: {integrity: sha512-dTBbIC1BbCy6J9W/Csg5xROgb3wJN3HpbgAJHHSEtAkb8oA45KZmU3ZwEpNhf0AfPuQm4XgW1936PvlDlGgJiw==}
+    dependencies:
+      inherits: 2.0.4
+    dev: false
+
+  /pouchdb-fetch/7.3.0:
+    resolution: {integrity: sha512-8/lcg8iMDG+GVs1dHNXA4ktJSEpH71dHU3xesMJ25tNQOqfAaaWrkfz9j71ZYDDkveLYE6UjUzl/sDacu2hSjw==}
+    dependencies:
+      abort-controller: 3.0.0
+      fetch-cookie: 0.11.0
+      node-fetch: 2.6.7
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /pouchdb-find/7.3.0:
+    resolution: {integrity: sha512-EwhnfyxCAkKf8PG4tfndTTygEmtuz+o1LiZkxfPrflfXA3m1jo1ithib0hwBYtEwEYWuZxH6B8pRZutbLoQCGA==}
+    dependencies:
+      pouchdb-abstract-mapreduce: 7.3.0
+      pouchdb-collate: 7.3.0
+      pouchdb-errors: 7.3.0
+      pouchdb-fetch: 7.3.0
+      pouchdb-md5: 7.3.0
+      pouchdb-selector-core: 7.3.0
+      pouchdb-utils: 7.3.0
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /pouchdb-mapreduce-utils/7.3.0:
+    resolution: {integrity: sha512-KDVSd+H2r+XWTrQfKWV71SknDDYRjYXoeWs0ZQl3xITHCcTl+fIgqyagg/XN+Zy/U9LeLPGMe2JdgPx9H8lJgw==}
+    dependencies:
+      argsarray: 0.0.1
+      inherits: 2.0.4
+      pouchdb-collections: 7.3.0
+      pouchdb-utils: 7.3.0
+    dev: false
+
+  /pouchdb-md5/7.3.0:
+    resolution: {integrity: sha512-wL04QgoKyd/L/TV5gxgcvlEyCJiZoXCOEFJklTzkdza/kBQNJGPH7i0ZhKa7Sb+AvZYoWZHddf1Zgv7rBScHkA==}
+    dependencies:
+      pouchdb-binary-utils: 7.3.0
+      spark-md5: 3.0.2
+    dev: false
+
+  /pouchdb-selector-core/7.3.0:
+    resolution: {integrity: sha512-sK/cCrIGeL9ImcMhKGcwa54+bzX7Wv4hhVV+oUW3T1Nasaoxh+Muem1GuA+x1+SbTCE8y37rUg8i6DIOhX51ew==}
+    dependencies:
+      pouchdb-collate: 7.3.0
+      pouchdb-utils: 7.3.0
+    dev: false
+
+  /pouchdb-utils/7.3.0:
+    resolution: {integrity: sha512-HH+5IXXWn/ZgVCSnrlydBMYn6MabT7RS7SNoo9w8qVH9efpZSp3eLchw6yMQNLw8LQefWmbbskiHV9VgJmSVWQ==}
+    dependencies:
+      argsarray: 0.0.1
+      clone-buffer: 1.0.0
+      immediate: 3.3.0
+      inherits: 2.0.4
+      pouchdb-collections: 7.3.0
+      pouchdb-errors: 7.3.0
+      pouchdb-md5: 7.3.0
+      uuid: 8.3.2
+    dev: false
 
   /pouchdb/7.3.0:
     resolution: {integrity: sha512-OwsIQGXsfx3TrU1pLruj6PGSwFH+h5k4hGNxFkZ76Um7/ZI8F5TzUHFrpldVVIhfXYi2vP31q0q7ot1FSLFYOw==}
@@ -1675,6 +1760,15 @@ packages:
     dependencies:
       picomatch: 2.3.1
 
+  /relational-pouch/4.0.0_pouchdb-find@7.3.0:
+    resolution: {integrity: sha512-1BH3SIPMKqFAOeg6pOu/fpfEYgMQHOM24JheP6d9COCHze7FoGfgY4dC+9C/gkBLFeLVXDcuiY5oZy/U1aPZIQ==}
+    peerDependencies:
+      pouchdb-find: ^7.1.0
+    dependencies:
+      pouchdb-find: 7.3.0
+      uniq: 1.0.1
+    dev: false
+
   /request-light/0.5.7:
     resolution: {integrity: sha512-i/wKzvcx7Er8tZnvqSxWuNO5ZGggu2UgZAqj/RyZ0si7lBTXL7kZiI/dWxzxnQjaY7s5HEy1qK21Do4Ncr6cVw==}
     dev: true
@@ -1827,14 +1921,14 @@ packages:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
     dev: false
 
-  /tslib/1.14.1:
-    resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
-    dev: false
-
   /typescript/4.5.5:
     resolution: {integrity: sha512-TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==}
     engines: {node: '>=4.2.0'}
     hasBin: true
+
+  /uniq/1.0.1:
+    resolution: {integrity: sha512-Gw+zz50YNKPDKXs+9d+aKAjVwpjNwqzvNpLigIruT4HA9lMZNdMqs9x07kKHB/L9WRzqp4+DlTU5s4wG2esdoA==}
+    dev: false
 
   /universalify/0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
@@ -1998,15 +2092,6 @@ packages:
       vscode-pug-languageservice: 0.27.24
       vscode-typescript-languageservice: 0.27.25
     dev: true
-
-  /vue-cryptojs/2.3.0_vue@3.2.31:
-    resolution: {integrity: sha512-jOoAFij6nfWEK5thphHfGGKiA5xvxywCdta7/erdGNNy8p5LF9MKxKhWduV6UMaGxrhldFkSZan+bhiPO/Lrkg==}
-    peerDependencies:
-      vue: '>= 2.0.0'
-    dependencies:
-      crypto-js: 4.1.1
-      vue: 3.2.31
-    dev: false
 
   /vue-demi/0.13.1_vue@3.2.31:
     resolution: {integrity: sha512-xmkJ56koG3ptpLnpgmIzk9/4nFf4CqduSJbUM0OdPoU87NwRuZ6x49OLhjSa/fC15fV+5CbEnrxU4oyE022svg==}

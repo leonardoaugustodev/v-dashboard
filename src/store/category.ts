@@ -10,28 +10,14 @@ export const useCategoryStore = defineStore('category', {
       categories: ref<Array<ICategory>>([]),
     };
   },
-  getters: {},
-  actions: {
-    async loadCategories() {
-      try {
-        const allDocs = await db.allDocs({
-          include_docs: true,
-          startkey: 'category_',
-          endkey: 'category_\ufff0',
-        });
-
-        const retrievedCategories = allDocs.rows.map((row) => {
-          return <ICategory>(row.doc as unknown);
-        });
-
-        this.categories = [
-          ...(<Array<ICategory>>([...retrievedCategories] as unknown)),
-        ];
-      } catch (err) {
-        console.log(err);
-      }
+  getters: {
+    getCategory(state) {
+      return (categoryId: string) =>
+        state.categories.find((c) => c._id === categoryId);
     },
-    async getOrAddCategory(category: ICategory) {
+  },
+  actions: {
+    getOrAddCategory(category: ICategory) {
       try {
         const { parentId } = category;
         let index;
@@ -43,21 +29,11 @@ export const useCategoryStore = defineStore('category', {
           index = this.categories.findIndex((c) => c.name === category.name);
         }
 
-        let result;
         if (index < 0) {
-          const categoryToInsert = { _id: generateId('category'), ...category };
-          result = await db.post(categoryToInsert);
-
-          const { id, rev } = result;
-          category = {
-            _id: id,
-            _rev: rev,
-            ...category,
-          };
-
+          category = { _id: generateId('category'), ...category };
           this.categories.push(category);
         } else {
-          category = await db.get(this.categories[index]._id);
+          category = this.categories[index];
         }
 
         return category;
@@ -65,5 +41,23 @@ export const useCategoryStore = defineStore('category', {
         console.log(err);
       }
     },
+    updateCategory(category: ICategory) {
+      if (!category._id) return;
+
+      const index = this.categories.findIndex((c) => c._id === category._id);
+
+      const mergedCategory = {
+        ...this.categories[index],
+        ...category,
+      };
+
+      this.categories[index] = mergedCategory;
+    },
+    deleteCategory(categoryId: string) {
+      const index = this.categories.findIndex((c) => c._id === categoryId);
+
+      this.categories.splice(index, 1);
+    },
   },
+  persist: true,
 });

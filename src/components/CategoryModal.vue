@@ -1,6 +1,7 @@
 <template>
 
-  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
+  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal"
+    @keyup.enter="handleSave">
     <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
     <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md">
@@ -30,7 +31,7 @@
 
         <!--Body-->
         <form>
-          <input type="text" ref="modalInput" v-model="categoryToEdit.name"
+          <input type="text" ref="modalInput" v-model="categoryToEdit.name" @keypress.enter="handleSave"
             class="form-input w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500" />
         </form>
 
@@ -54,18 +55,16 @@
 import { ref, computed, ComputedRef, nextTick, onMounted } from "vue";
 import { useCategoryStore } from "../store/category";
 import { useBudgetStore } from "../store/budget";
-import FormInput from './FormInput.vue'
 import { ICategory } from "../schemas/category";
-import { IBudget, IChildRow, IParentRow } from "../schemas/budget";
-import { generateId } from '../utils/hash';
 
 const emit = defineEmits(['close-modal'])
 const categoryStore = useCategoryStore();
 const budgetStore = useBudgetStore();
 
-const { category, parentRowId } = defineProps<{
+const { category, parentRowId, isEdit } = defineProps<{
   category: ICategory,
-  parentRowId: any
+  parentRowId: any,
+  isEdit: boolean,
 }>()
 
 let categoryToEdit = <ICategory>(category);
@@ -75,26 +74,27 @@ const closeModal = () => {
   emit('close-modal');
 }
 
-const isEdit: ComputedRef<boolean> = computed((): boolean => {
-  return categoryToEdit && !!categoryToEdit._id;
-})
 
-const handleSave = async () => {
+const handleSave = () => {
   try {
 
-    const budget: any = budgetStore.budgets.find(b => b._id === budgetStore.currentBudget?._id);
-
-    const storedCategory = await categoryStore.getOrAddCategory({ ...categoryToEdit });
+    const storedCategory = categoryStore.getOrAddCategory({ ...categoryToEdit });
     if (!storedCategory) return;
 
-    console.log('parentRowId', parentRowId);
-
-    if (parentRowId) {
-      budgetStore.addChildRow(parentRowId, storedCategory._id);
+    if (isEdit) {
+      console.log('editing');
+      categoryStore.updateCategory(categoryToEdit);
     }
     else {
-      budgetStore.addParentRow(storedCategory._id)
+      if (parentRowId) {
+        budgetStore.addChildRow(parentRowId, storedCategory._id);
+      }
+      else {
+        console.log('addind parent row');
+        budgetStore.addParentRow(storedCategory._id)
+      }
     }
+
     closeModal();
   } catch (err) {
     console.log(err);
@@ -103,7 +103,9 @@ const handleSave = async () => {
 
 onMounted(() => {
   nextTick(() => {
-    modalInput.value.focus();
+    if (modalInput && modalInput.value) {
+      modalInput.value.focus();
+    }
   })
 });
 

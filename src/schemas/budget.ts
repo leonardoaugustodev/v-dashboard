@@ -1,25 +1,25 @@
 import { IAccount } from './account';
 import { ICategory } from './category';
-import { IPouchDB } from './pouchdb';
-export interface IBudget extends IPouchDB{
+import { Database } from './database';
+export interface IBudget extends Database{
   month: number;
   year: number;
-  rows: Array<IParentRow>;
+  rows?: Array<IParentRow>;
 }
 
-export interface IParentRow extends IPouchDB{
-  budgetId?: string;
-  categoryId?: string;
-  category?: ICategory;
+export interface IParentRow extends Database{
+  budgetId: string;
+  categoryId: string;
   isCollapsed?: boolean;
+  category?: ICategory;
   children?: Array<IChildRow>;
 }
 
-export interface IChildRow extends IPouchDB{
-  categoryId?: string;
+export interface IChildRow extends Database{
+  budgetId: string;
+  categoryId: string;
+  parentId: string;
   category?: ICategory;
-  budgetId?: string;
-  parentId?: string;
   budgeted?: number;
   activity?: number;
   balance?: number;

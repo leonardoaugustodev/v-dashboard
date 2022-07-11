@@ -1,5 +1,6 @@
-export interface IAccount {
-  id?: any;
+import { Database } from "./database";
+
+export interface IAccount extends Database{
   name: string;
   type: string;
   on_budget: boolean;

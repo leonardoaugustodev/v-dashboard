@@ -4,7 +4,7 @@
 
   <div class="flex justify-between full-width">
     <h3 class="text-gray-700 text-3xl font-medium">Accounts</h3>
-    <button @click="editingAccount = defaultAccount; showModal = true"
+    <button @click="handleNew"
       class="px-4 py-2 text-gray-200 bg-blue-800 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">
       New account
     </button>
@@ -38,11 +38,12 @@
             </thead>
 
             <tbody class="bg-white">
-              <tr v-for="(u, index) in accountTableData" :key="index" @click="handleNavigate(u.id)">
+              <tr v-for="(u, index) in accountStore.accounts" :key="index">
                 <td class="px-6 py-4 border-b border-gray-200 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="text-sm font-medium leading-5 text-gray-900">
-                      {{ u.name }}
+                      <span @click="handleNavigate(u._id)" class="hover:underline hover:cursor-pointer">{{ u.name
+                      }}</span>
                     </div>
                   </div>
                 </td>
@@ -61,13 +62,12 @@
                 </td>
 
                 <td class="px-6 py-4 text-sm leading-5 text-gray-500 border-b border-gray-200 whitespace-nowrap">
-                  {{ u.balance.toFixed(2) }}
+                  {{ formatCurrency(u.balance) }}
                 </td>
 
                 <td
                   class="px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200 whitespace-nowrap">
-                  <a href="#" class="text-indigo-600 hover:text-indigo-900"
-                    @click="editingAccount = u; showModal = true">Edit</a>
+                  <button href="#" class="text-indigo-600 hover:text-indigo-900" @click="handleEdit(u)">Edit</button>
                 </td>
               </tr>
 
@@ -83,18 +83,45 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from "vue-router";
-
 import AccountModal from "../components/AccountModal.vue";
-import { IAccount, useAccount } from "../hooks/useAccount";
+import { IAccount } from '../schemas/account';
+import { useAccountStore } from '../store/account';
+import { formatCurrency } from '../utils/currency';
+
+const accountStore = useAccountStore();
 const showModal = ref(false);
-const editingAccount = ref<IAccount>()
-const { defaultAccount } = useAccount();
-const { accountTableData } = useAccount();
 const router = useRouter();
+
+const defaultAccount = <IAccount>{
+  name: '',
+  type: '',
+  on_budget: true,
+  status: 'active',
+  balance: 0,
+};
+const editingAccount = ref<IAccount>(defaultAccount)
+
 const handleNavigate = (accountId: string) => {
   router.push({
     name: 'AccountDetail', params: { id: accountId }
   })
+}
+
+const handleNew = () => {
+  editingAccount.value = {
+    ...defaultAccount,
+  };
+  showModal.value = true;
 
 }
+
+const handleEdit = (account: IAccount) => {
+  editingAccount.value = {
+    ...defaultAccount,
+    ...account
+  };
+  showModal.value = true;
+
+}
+
 </script>

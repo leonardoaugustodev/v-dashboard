@@ -11,41 +11,43 @@ export const useBudgetStore = defineStore('budget', {
       currentMonth: new Date().getMonth(),
       currentYear: new Date().getFullYear(),
       budgets: <Array<IBudget>>[],
+      parentRows: <Array<IParentRow>>[],
+      childRows: <Array<IChildRow>>[],
     };
   },
   getters: {
-    currentBudget: (state): IBudget => {
+    currentBudget: (state): IBudget | undefined => {
       const categoryStore = useCategoryStore();
       const foundBudget = state.budgets.find(
         (b) => b.month === state.currentMonth && b.year === state.currentYear
       );
 
       if (foundBudget) {
-        foundBudget.rows = foundBudget.rows.map((row) => {
-          const category = categoryStore.categories.find(
-            (cat) => cat._id === row.categoryId
-          );
-
-          if (row.children) {
-            row.children = row.children?.map((ch) => {
-              const category = categoryStore.categories.find(
-                (cat) => cat._id === ch.categoryId
-              );
-
+        foundBudget.rows = <Array<IParentRow>>state.parentRows.map((pRow) => {
+          const children = state.childRows.flatMap((cRow) => {
+            if (
+              cRow.parentId === pRow._id &&
+              cRow.budgetId === foundBudget._id
+            ) {
+              const category = categoryStore.getCategory(cRow.categoryId);
               return {
+                ...cRow,
                 category,
-                ...ch,
               };
-            });
-          }
+            }
+            return [];
+          });
+
+          const category = categoryStore.getCategory(pRow.categoryId);
 
           return {
+            ...pRow,
+            children,
             category,
-            ...row,
           };
         });
+        return foundBudget;
       }
-      return foundBudget;
     },
   },
   actions: {
@@ -61,103 +63,59 @@ export const useBudgetStore = defineStore('budget', {
       this.currentMonth = month;
       this.currentYear = year;
     },
-    async loadBudgets() {
-      try {
-        const allDocs = await db.allDocs({
-          include_docs: true,
-          startkey: 'budget_',
-          endkey: 'budget_\ufff0',
-        });
-
-        console.log('allDocs', allDocs);
-
-        if (allDocs.rows.length) {
-          const retrievedBudgets = allDocs.rows.map((row) => {
-            return <IBudget>(row.doc as unknown);
-          });
-
-          this.budgets = [
-            ...(<Array<IBudget>>([...retrievedBudgets] as unknown)),
-          ];
-        } else {
-          this.cloneBudget();
-        }
-      } catch (err) {
-        console.log(err);
-      }
+    createNewBudget(budget: IBudget) {
+      this.budgets.push(budget);
     },
-    async createNewBudget(budget: IBudget) {
-      await db.post(budget);
-
-      this.loadBudgets();
-    },
-    async addParentRow(categoryId: string) {
+    addParentRow(categoryId: string) {
+      console.log('Parent Row Adding');
       try {
-        // Retrieve budget
-        const currentBudget = { ...this.currentBudget };
-
-        if (currentBudget) {
+        if (this.currentBudget) {
           const parentRow: IParentRow = {
             _id: generateId('parentBudgetRow'),
-            budgetId: currentBudget._id,
+            budgetId: this.currentBudget._id,
             categoryId,
             isCollapsed: false,
-            children: [],
           };
 
-          if (!currentBudget.rows) currentBudget.rows = [];
-
-          currentBudget.rows.push(parentRow);
-
-          // Post to db
-          await db.put(currentBudget);
-
-          this.loadBudgets();
+          this.parentRows.push(parentRow);
         }
       } catch (err) {
         console.log(err);
       }
     },
-    async addChildRow(parentId: string, categoryId: string) {
+    addChildRow(parentId: string, categoryId: string) {
       try {
-        // Retrieve budget
-        const currentBudget = { ...this.currentBudget };
-        const parentRow = currentBudget.rows?.find(
-          (row) => row._id === parentId
-        );
+        const parentRow = this.parentRows.find((row) => row._id === parentId);
 
-        if (currentBudget && parentRow) {
+        if (this.currentBudget && parentRow) {
           const childRow: IChildRow = {
             _id: generateId('childBudgetRow'),
-            budgetId: currentBudget._id,
-            parentId,
+            budgetId: this.currentBudget._id,
+            parentId: parentRow._id,
             categoryId,
             budgeted: 0,
             activity: 0,
             balance: 0,
           };
 
-          if (!parentRow.children) parentRow.children = [];
-
-          parentRow.children.push(childRow);
-
-          console.log(parentRow);
-
-          // Post to db
-          await db.put(currentBudget);
-
-          this.loadBudgets();
+          this.childRows.push(childRow);
         }
       } catch (err) {
         console.log(err);
       }
     },
-    async updateChildRow(childRow: IChildRow) {
+    updateChildRow(childRow: IChildRow) {
       try {
-        console.log(childRow);
-        const result = await db.get(childRow._id);
 
-        console.log(result);
+        const index = this.childRows.findIndex(row => row._id === childRow._id);
+        console.log(childRow);
+
+        const mergedRow = {
+          ...this.childRows[index],
+          ...childRow,
+        };
+
+        this.childRows.splice(index, 1, mergedRow); 
 
       } catch (err) {
         console.error(err);
@@ -168,15 +126,12 @@ export const useBudgetStore = defineStore('budget', {
         let rows: Array<IParentRow> = [];
 
         if (newMonth && newYear) {
-          console.log(newMonth, newYear);
           const previousBudget = this.budgets.find(
             (b) => b.month === newMonth - 1 && b.year === newYear - 1
           );
 
-          console.log('previousBudget', previousBudget);
-
           if (previousBudget) {
-            rows = [...previousBudget.rows];
+            // rows = [...previousBudget.rows];
           }
         }
 
@@ -184,7 +139,6 @@ export const useBudgetStore = defineStore('budget', {
           _id: generateId('budget'),
           month: newMonth || new Date().getMonth(),
           year: newYear || new Date().getFullYear(),
-          rows,
         };
 
         this.createNewBudget(newBudget);
@@ -193,4 +147,5 @@ export const useBudgetStore = defineStore('budget', {
       }
     },
   },
+  persist: true,
 });

@@ -1,6 +1,6 @@
-import { IPouchDB } from "./pouchdb";
+import { Database } from "./database";
 
-export interface ICategory extends IPouchDB{
+export interface ICategory extends Database{
   name: string;
   parentId?: any;
   isActive: boolean;

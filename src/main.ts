@@ -3,7 +3,9 @@ import App from './App.vue';
 import router from './router';
 import './assets/main.css';
 import { createPinia } from 'pinia';
-import { db } from './database';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
+// import { db } from './database';
 
 import DashboardLayout from './components/DashboardLayout.vue';
 import EmptyLayout from './components/EmptyLayout.vue';
@@ -12,6 +14,7 @@ import { useBudgetStore } from './store/budget';
 
 const app = createApp(App);
 const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate)
 
 app.component('default-layout', DashboardLayout);
 app.component('empty-layout', EmptyLayout);
@@ -23,10 +26,10 @@ app.mount('#app');
 
 app.config.globalProperties.appName = 'Moneylee';
 app.config.globalProperties.$router = router;
-app.config.globalProperties.$db = db;
+// app.config.globalProperties.$db = db;
 
-const categoryStore = useCategoryStore();
-categoryStore.loadCategories();
+// const categoryStore = useCategoryStore();
+// categoryStore.loadCategories();
 
-const budgetStore = useBudgetStore();
-budgetStore.loadBudgets();
+// const budgetStore = useBudgetStore();
+// budgetStore.loadBudgets();

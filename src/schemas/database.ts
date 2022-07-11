@@ -1,4 +1,4 @@
-export interface IPouchDB {
+export interface Database {
   _id?: any;
   _rev?: string,
 }

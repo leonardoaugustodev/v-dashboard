@@ -13,14 +13,14 @@
     "@tailwindcss/typography": "^0.5.2",
     "@types/node": "^18.0.3",
     "@types/pouchdb": "^6.4.0",
-    "crypto": "^1.0.1",
-    "crypto-ts": "^1.0.2",
     "events": "^3.3.0",
     "moment": "^2.29.3",
     "pinia": "^2.0.14",
+    "pinia-plugin-persistedstate": "^1.6.1",
     "pouchdb": "^7.3.0",
+    "pouchdb-find": "^7.3.0",
+    "relational-pouch": "^4.0.0",
     "vue": "^3.2.6",
-    "vue-cryptojs": "^2.3.0",
     "vue-router": "4"
   },
   "devDependencies": {

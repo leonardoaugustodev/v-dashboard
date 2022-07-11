@@ -1,6 +1,6 @@
 <template>
 
-  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId"
+  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId" :is-editing="isEditing"
     @close-modal="handleCloseCategoryModal" />
 
   <div class="flex justify-between">
@@ -130,7 +130,8 @@
               </tr>
 
               <template v-if="u.children?.length && !u.isCollapsed">
-                <BudgetChildRow v-for="(child, cIndex) in u.children" :key="cIndex" :row="child" />
+                <BudgetChildRow v-for="(child, cIndex) in u.children" :key="cIndex" :row="child"
+                  @update-category="handleUpdateRowCategory(child)" @row-select="handleSelectRow"/>
               </template>
             </template>
 
@@ -157,13 +158,14 @@ const categoryStore = useCategoryStore();
 
 const selectedRows = ref<Array<IChildRow>>([]);
 
-const handleSelectRow = (event: any, row: IChildRow) => {
-  if (event.target.checked) {
+const handleSelectRow = (row: any, checked: boolean) => {
+  console.log(row, checked);
+  if (checked) {
     selectedRows.value.push(row);
   }
   else {
     selectedRows.value.splice(
-      selectedRows.value.findIndex(r => r.id === row.id), 1
+      selectedRows.value.findIndex(r => r._id === row._id), 1
     )
   }
 }
@@ -209,16 +211,15 @@ const navigate = (decreaseOrIncrease: number) => {
 }
 
 const showCategoryModal = ref(false);
+const isEditing = ref(false);
 const parentRowId = ref();
 
 const defaultCategory = <ICategory>({
   name: '',
   isActive: true,
-  type: 'category',
 });
 
 let newCategory = ref(<ICategory>({}));
-
 
 const handleNewCategory = (parentId: any, pRowId: any) => {
   if (parentId) {
@@ -227,14 +228,21 @@ const handleNewCategory = (parentId: any, pRowId: any) => {
 
   parentRowId.value = pRowId;
   showCategoryModal.value = true;
+  isEditing.value = false;
+}
 
+const handleUpdateRowCategory = (row: IChildRow) => {
+  if (row.category) {
+    newCategory.value = { ...row.category };
+    showCategoryModal.value = true;
+    isEditing.value = true;
+  }
 }
 
 const handleCloseCategoryModal = () => {
   newCategory.value = {
     name: '',
     isActive: true,
-    type: 'category',
   };
   showCategoryModal.value = false;
 }
