@@ -1,7 +1,6 @@
 <template>
 
-  <div :class="`modal ${!open && 'opacity-0 pointer-events-none'
-  } z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
+  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
     <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
     <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md">
@@ -34,18 +33,31 @@
           <label class="block my-2">
             <span class="block mb-1 text-sm font-medium text-slate-700">Name</span>
 
-            <input type="text" v-model="accountToEdit.name" ref="labelInput"
+            <input type="text" ref="labelInput" v-model="accountToEdit.name" 
               class="form-input w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500" />
           </label>
 
           <label class="block my-2">
             <span class="block mb-1 text-sm font-medium text-slate-700">Type</span>
-            <select type="text"
+            <select type="text" v-model="accountToEdit.type"
               class="form-select w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500">
               <option v-for="(type, index) in accountStore.accountTypes" :value="type.value" :key="type.value">{{
                   type.label
               }}
               </option>
+            </select>
+            <!-- 
+            <p class="mt-2 invisible peer-invalid:visible text-pink-600 text-sm">
+              Please provide a valid email address.
+            </p> -->
+          </label>
+
+          <label class="block my-2">
+            <span class="block mb-1 text-sm font-medium text-slate-700">Status</span>
+            <select type="text" v-model="accountToEdit.status"
+              class="form-select w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
             </select>
             <!-- 
             <p class="mt-2 invisible peer-invalid:visible text-pink-600 text-sm">
@@ -81,13 +93,12 @@ import FormInput from './FormInput.vue'
 
 const emit = defineEmits(['close-modal'])
 const accountStore = useAccountStore();
-const { open, account } = defineProps<{
-  open: boolean,
+const { account } = defineProps<{
   account: IAccount
 }>()
 
 const accountToEdit = ref<IAccount>(account);
-const labelInput = ref(null);
+const labelInput = ref();
 const closeModal = () => {
   // accountToEdit.value = useAccount().defaultAccount;
   emit('close-modal');
@@ -98,7 +109,9 @@ const isEdit = computed((): boolean => {
 });
 
 const handleSave = () => {
-  accountStore.saveAccount(account || accountToEdit.value);
+  accountStore.saveAccount({
+    ...account, 
+    ...accountToEdit.value});
   closeModal();
 }
 

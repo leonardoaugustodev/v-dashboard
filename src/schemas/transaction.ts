@@ -1,12 +1,16 @@
 import { IAccount } from "./account";
 import { ICategory } from "./category";
-export interface ITransaction {
-  id?: any;
-  date: string;
-  account: IAccount;
-  payeeid?: string;
+import { Database } from "./database";
+export interface ITransaction  extends Database{
+  date: Date;
+  accountId?: string;
+  account?: IAccount;
+  payeeId?: string;
   memo?: string;
+  categoryId?: string;
   category?: ICategory;
   inflow: number;
   outflow: number;
+  cleared: boolean;
+  isEditing?: boolean;
 }

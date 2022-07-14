@@ -1,6 +1,6 @@
 <template>
 
-  <AccountModal :account="editingAccount" :open="showModal" @close-modal="showModal = false" />
+  <AccountModal :account="editingAccount" v-if="showModal" @close-modal="showModal = false" />
 
   <div class="flex justify-between full-width">
     <h3 class="text-gray-700 text-3xl font-medium">Accounts</h3>
@@ -56,7 +56,8 @@
 
                 <td class="px-6 py-4 border-b border-gray-200 whitespace-nowrap">
                   <span
-                    class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
+                    class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full"
+                    :class="u.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">{{
                         u.status
                     }}</span>
                 </td>
@@ -96,7 +97,7 @@ const defaultAccount = <IAccount>{
   name: '',
   type: '',
   on_budget: true,
-  status: 'active',
+  status: 'Active',
   balance: 0,
 };
 const editingAccount = ref<IAccount>(defaultAccount)

@@ -1,34 +1,52 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
 import { ITransaction } from '../schemas/transaction';
+import { generateId } from '../utils/hash';
+import { useAccountStore } from './account';
+import { useCategoryStore } from './category';
 
 export const useTransactionStore = defineStore('transaction', {
   state: () => {
     return {
-      transactions: ref<Array<ITransaction>>(
-        [...Array(10).keys()].map((element, index) => ({
-          id: `${index}`,
-          date: new Date().toISOString(),
-          account: {
-            id: `${index}`,
-            name: `Account ${index}`,
-            type: 'Checking',
-            on_budget: true,
-            status: 'Open',
-            balance: Math.random() * 100000,
-          },
-          memo: `Random memo ${index}`,
-          category: {
-            id: `${index}`,
-            name: `Category ${index}`,
-            isActive: true,
-          },
-          inflow: Math.random() * 10000,
-          outflow: Math.random() * 10000,
-        }))
-      ),
+      transactions: <Array<ITransaction>>[],
     };
   },
-  getters: {},
-  actions: {},
+  getters: {
+    getTransactionsByAccountId(state) {
+      const categoryStore = useCategoryStore();
+      const accountStore = useAccountStore();
+
+      return (accountId: string) =>
+        state.transactions.filter((c) => c.accountId === accountId).map(t => {
+          if(t.accountId){
+            t.account = accountStore.getAccount(t.accountId);
+          }
+
+          if(t.categoryId){
+            t.category = categoryStore.getCategory(t.categoryId);
+          }
+
+          return t;
+        });
+    },
+  },
+  actions: {
+    save(transaction: ITransaction) {
+      if (transaction._id) {
+        const index = this.transactions.findIndex(
+          (acc) => acc._id === transaction._id
+        );
+
+        this.transactions.splice(index, 1, {
+          ...this.transactions[index],
+          ...transaction,
+        });
+      } else {
+        this.transactions.push({
+          _id: generateId('transaction'),
+          ...transaction,
+        });
+      }
+    },
+  },
+  persist: true,
 });

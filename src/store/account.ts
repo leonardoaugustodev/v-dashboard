@@ -8,35 +8,51 @@ export const useAccountStore = defineStore('account', {
       accountTypes: [
         {
           label: 'Checking',
-          value: 'checking',
+          value: 'Checking',
         },
 
-        { label: 'Credit', value: 'credit' },
+        { label: 'Credit Card', value: 'Credit Card' },
         {
           label: 'Saving',
-          value: 'saving',
+          value: 'Saving',
         },
         {
           label: 'Mortgage',
-          value: 'mortgage',
+          value: 'Mortgage',
         },
         {
           label: 'Cash',
-          value: 'cash',
+          value: 'Cash',
         },
         {
           label: 'Investiment',
-          value: 'investiment',
+          value: 'Investiment',
         },
         {
           label: 'Other',
-          value: 'other',
+          value: 'Other',
         },
       ],
       accounts: <Array<IAccount>>[],
     };
   },
-  getters: {},
+  getters: {
+    getAccount(state) {
+      return (accountId: string) =>
+        state.accounts.find((c) => c._id === accountId);
+    },
+    getAccountsPicklist(state) {
+      return state.accounts.flatMap((acc) => {
+        if (acc.status === 'Active') {
+          return {
+            label: acc.name,
+            value: acc._id,
+          };
+        }
+        return [];
+      });
+    },
+  },
   actions: {
     saveAccount(account: IAccount) {
       if (account._id) {
@@ -54,5 +70,5 @@ export const useAccountStore = defineStore('account', {
       }
     },
   },
-  persist: true
+  persist: true,
 });

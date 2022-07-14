@@ -4,6 +4,6 @@ export interface IAccount extends Database{
   name: string;
   type: string;
   on_budget: boolean;
-  status: string;
+  status: 'Active' | 'Inactive';
   balance: number;
 }

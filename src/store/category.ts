@@ -15,6 +15,17 @@ export const useCategoryStore = defineStore('category', {
       return (categoryId: string) =>
         state.categories.find((c) => c._id === categoryId);
     },
+    getCategoriesPicklist(state) {
+      return state.categories.flatMap((cat) => {
+        if (cat.isActive && cat.parentId ) {
+          return {
+            label: cat.name,
+            value: cat._id,
+          };
+        }
+        return [];
+      });
+    },
   },
   actions: {
     getOrAddCategory(category: ICategory) {

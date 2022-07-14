@@ -68,7 +68,7 @@ const { category, parentRowId, isEdit } = defineProps<{
 }>()
 
 let categoryToEdit = <ICategory>(category);
-const modalInput = ref(null)
+const modalInput = ref()
 
 const closeModal = () => {
   emit('close-modal');

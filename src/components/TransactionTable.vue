@@ -5,63 +5,72 @@
         <table class="min-w-full">
           <thead>
             <tr>
-              <th class="px-6 py-3 bg-gray-100 border-b border-gray-200"></th>
               <th
-                class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Date
               </th>
               <th
-                class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Account
               </th>
               <th
-                class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Memo
               </th>
               <th
-                class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Category
               </th>
               <th
-                class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Inflow
               </th>
               <th
-                class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
                 Outflow
+              </th>
+              <th
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-center text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                Cleared
               </th>
             </tr>
           </thead>
 
           <tbody class="bg-white">
+
+            <tr v-if="!isEditing" @click="handleEdit" class="text-center bg-gray-100 text-gray-400 text-sm">
+              <td class="py-2 hover:text-bold" colspan="8"> + Transaction</td>
+            </tr>
+            <TransactionNew :account-id="accountId" v-else />
+
             <tr v-for="(u, index) in transactions" :key="index">
 
-              <td class="px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200 whitespace-nowrap">
-                <input type="checkbox">
-              </td>
-
-              <td class="px-6 py-4 border-b border-gray-200 whitespace-nowrap">
+              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
                 <div class="flex items-center">
+                  <input class="mr-4 ml-2 border-gray-300 rounded" type="checkbox" />
                   <div class="text-sm font-medium leading-5 text-gray-900">
                     {{ moment(u.date).format('DD/MM/YYYY') }}
                   </div>
                 </div>
               </td>
 
-              <td class="px-6 py-4 border-b border-gray-200 whitespace-nowrap">
-                <span
+              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
+                <span v-if="!u.isEditing" @click="u.isEditing = !u.isEditing"
                   class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
                       u.account.name
                   }}</span>
+                <input v-if="u.isEditing" @focus="$event.target.select()" @keydown.esc="u.isEditing = !u.isEditing"
+                  ref="budgetedInput" type="number" v-model="editableRow.budgeted"
+                  class="w-20 h-6 text-xs font-semibold leading-5 text-green-800 bg-green-100 border-green-200 rounded-full">
               </td>
 
-              <td class="px-6 py-4 border-b border-gray-200 whitespace-nowrap">
+              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
                 <div class="text-sm leading-5 text-gray-900">
                   {{ u.memo }}
                 </div>
               </td>
 
-              <td class="px-6 py-4 border-b border-gray-200 whitespace-nowrap">
+              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
                 <span
                   class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
                       u.category?.name
@@ -69,15 +78,30 @@
               </td>
 
 
-              <td class="px-6 py-4 text-sm leading-5 text-green-700 border-b border-gray-200 whitespace-nowrap">
-                {{ u.inflow.toFixed(2) }}
+              <td class="py-2 text-sm leading-5 text-right text-green-700 border-b border-gray-200 whitespace-nowrap">
+                {{ formatCurrency(u.inflow) }}
               </td>
 
-              <td class="px-6 py-4 text-sm leading-5 text-red-500 border-b border-gray-200 whitespace-nowrap">
-                {{ u.outflow.toFixed(2) }}
+              <td class="py-2 text-sm leading-5 text-right text-red-500 border-b border-gray-200 whitespace-nowrap">
+                {{ formatCurrency(u.outflow) }}
               </td>
 
+              <td class="py-2 text-sm leading-5 text-center border-b border-gray-200 whitespace-nowrap">
+                <button @click="u.cleared = !u.cleared">
+                  <svg v-if="u.cleared" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20"
+                    fill="#03a1fc">
+                    <path fill-rule="evenodd"
+                      d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd" />
+                  </svg>
 
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="#ddd" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                </button>
+              </td>
             </tr>
 
           </tbody>
@@ -89,27 +113,57 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from "vue-router";
+import { nextTick, ref } from 'vue';
 import moment from 'moment';
+import TransactionNew from './TransactionNew.vue';
 import { ITransaction } from '../schemas/transaction';
 import { useTransactionStore } from '../store/transaction';
-const store = useTransactionStore();
+import { useAccountStore } from '../store/account';
+import { useCategoryStore } from '../store/category';
+import { formatCurrency } from '../utils/currency';
 
-const props = defineProps<{ transactions: ITransaction[] }>();
+const transactionStore = useTransactionStore();
+const accountStore = useAccountStore();
+const categoryStore = useCategoryStore();
+const emit = defineEmits(['add-transaction']);
+
+const { transactions, accountId } = defineProps<{ transactions: ITransaction[], accountId: string }>();
+const defaultTransaction = {
+  date: new Date(),
+  accountId: accountId,
+  inflow: 0,
+  outflow: 0,
+  cleared: false
+};
+
+const transactionToEdit = ref<ITransaction>({});
+
+const dateInput = ref();
+const isEditing = ref(false);
+
+const handleSave = () => {
+  transactionStore.save(transactionToEdit.value);
+  emit('add-transaction');
+  handleEdit();
+}
+
+const handleEdit = () => {
+  transactionToEdit.value = { ...defaultTransaction };
+  isEditing.value = true;
+  focusDate();
+}
+
+const cancelEdit = () => {
+  isEditing.value = false;
+}
+
+const focusDate = () => {
+  nextTick(() => {
+    if (dateInput && dateInput.value) {
+      dateInput.value.focus();
+    }
+  })
+}
 
 
-// import AccountModal from "./AccountModal.vue";
-// import { IAccount, useAccount } from "../hooks/useAccount";
-// const showModal = ref(false);
-// const editingAccount = ref<IAccount>()
-// const { defaultAccount } = useAccount();
-// const { accountTableData } = useAccount();
-// const router = useRouter();
-// const handleNavigate = (accountId: string) => {
-//   router.push({
-//     name: 'AccountDetail', params: { id: accountId }
-//   })
-
-// }
 </script>
