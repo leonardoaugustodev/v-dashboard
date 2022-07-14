@@ -8,7 +8,7 @@
     </td>
     <td>
       <select type="text" v-model="transactionToEdit.accountId"
-        class="text-sm leading-0 border-0 border-b-2 border-gray-300" disabled>
+        class="text-sm leading-0 border-0 border-b-2 border-gray-300" >
         <option v-for="(option) in accountStore.getAccountsPicklist" :value="option.value" :key="option.value">{{
             option.label
         }}
@@ -27,7 +27,7 @@
         }}
         </option>
       </select> -->
-      <SelectInput :options="categoryStore.getCategoriesPicklist" :value="transactionToEdit.categoryId" />
+      <SelectInput :options="categoryStore.getCategoriesPicklist" :value="transactionToEdit.categoryId" @select="handleSelectCategory"/>
     </td>
     <td>
       <input type="number" v-model="transactionToEdit.inflow"
@@ -85,6 +85,10 @@ const handleSave = () => {
 
 const handleCancelEdit = () => {
   isEditing.value = false;
+}
+
+const handleSelectCategory = (categorySelected: string) => {
+  transactionToEdit.value.categoryId = categorySelected;
 }
 
 onMounted(() => {
