@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { IAccount } from '../schemas/account';
 import { generateId } from '../utils/hash';
+import { useTransactionStore } from './transaction';
 
 export const useAccountStore = defineStore('account', {
   state: () => {
@@ -51,6 +52,30 @@ export const useAccountStore = defineStore('account', {
         }
         return [];
       });
+    },
+    getSummaryValues() {
+      return (accountId: string) => {
+        const transactionStore = useTransactionStore();
+
+        const transactions =
+          transactionStore.getTransactionsByAccountId(accountId);
+        const cleared = transactions?.filter((t) => t.cleared);
+        const uncleared = transactions?.filter((t) => !t.cleared);
+
+        const clearedTotal = cleared?.reduce((acc, cv) => {
+          return acc + (cv.inflow - cv.outflow);
+        }, 0);
+
+        const unclearedTotal = uncleared?.reduce((acc, cv) => {
+          return acc + (cv.inflow - cv.outflow);
+        }, 0);
+
+        return {
+          cleared: clearedTotal || 0,
+          uncleared: unclearedTotal || 0,
+          total: (clearedTotal || 0) + (unclearedTotal || 0),
+        };
+      };
     },
   },
   actions: {

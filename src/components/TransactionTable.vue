@@ -1,5 +1,9 @@
 <template>
-  <div class="flex flex-col mt-6">
+
+  <TransactionMassEditModal v-if="showMassEditModal" :transactions="rowsSelected" />
+
+  <div class="flex flex-col">
+
     <div class="py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <div class="inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg">
         <table class="min-w-full">
@@ -38,16 +42,57 @@
 
           <tbody class="bg-white">
 
-            <tr v-if="!isEditing" @click="handleEdit" class="text-center bg-gray-100 text-gray-400 text-sm">
-              <td class="py-2 hover:text-bold" colspan="8"> + Transaction</td>
+            <tr v-if="!isEditing" class="text-center bg-gray-100 text-gray-400 text-sm">
+
+              <td v-if="!rowsSelected.length" @click="handleEdit" class="py-2 hover:text-bold" colspan="8"> +
+                Transaction</td>
+
+              <td v-else class="" colspan="8">
+                <div class="w-full sm:w-1/1 xl:w-3/3 px-1 flex justify-between items-center">
+                  <div class="flex">
+                    <button @click="handleMassEdit"
+                      class="text-blue-600 hover:text-blue-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                        <path fill-rule="evenodd"
+                          d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                          clip-rule="evenodd" />
+                      </svg>
+                      <span class="ml-1">Edit</span>
+                    </button>
+
+                    <button @click="handleMassClear"
+                      class="text-blue-600 hover:text-blue-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                      </svg>
+                      <span class="ml-1">Clear</span>
+                    </button>
+                  </div>
+
+                  <button @click="handleDelete"
+                    class="text-red-600 hover:text-red-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    <span class="ml-1">Delete</span>
+                  </button>
+
+                </div>
+              </td>
             </tr>
-            <TransactionNew :account-id="accountId" v-else />
+            <TransactionNew v-else @keydown.esc="isEditing = !isEditing" :account-id="accountId"
+              @add-transaction="handleTransactionAdded" />
 
             <tr v-for="(u, index) in transactions" :key="index">
 
               <td class="py-2 border-b border-gray-200 whitespace-nowrap">
                 <div class="flex items-center">
-                  <input class="mr-4 ml-2 border-gray-300 rounded" type="checkbox" />
+                  <input class="mr-4 ml-2 border-gray-300 rounded" type="checkbox" @change="handleSelect(u, $event)" />
                   <div class="text-sm font-medium leading-5 text-gray-900">
                     {{ moment(u.date).format('DD/MM/YYYY') }}
                   </div>
@@ -55,13 +100,11 @@
               </td>
 
               <td class="py-2 border-b border-gray-200 whitespace-nowrap">
-                <span v-if="!u.isEditing" @click="u.isEditing = !u.isEditing"
+                <span
                   class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
-                      u.account.name
+                      u.account?.name
                   }}</span>
-                <input v-if="u.isEditing" @focus="$event.target.select()" @keydown.esc="u.isEditing = !u.isEditing"
-                  ref="budgetedInput" type="number" v-model="editableRow.budgeted"
-                  class="w-20 h-6 text-xs font-semibold leading-5 text-green-800 bg-green-100 border-green-200 rounded-full">
+
               </td>
 
               <td class="py-2 border-b border-gray-200 whitespace-nowrap">
@@ -87,7 +130,7 @@
               </td>
 
               <td class="py-2 text-sm leading-5 text-center border-b border-gray-200 whitespace-nowrap">
-                <button @click="u.cleared = !u.cleared">
+                <button @click="handleCleared(u)">
                   <svg v-if="u.cleared" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20"
                     fill="#03a1fc">
                     <path fill-rule="evenodd"
@@ -103,7 +146,6 @@
                 </button>
               </td>
             </tr>
-
           </tbody>
         </table>
       </div>
@@ -113,7 +155,7 @@
 
 
 <script setup lang="ts">
-import { nextTick, ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 import moment from 'moment';
 import TransactionNew from './TransactionNew.vue';
 import { ITransaction } from '../schemas/transaction';
@@ -121,13 +163,14 @@ import { useTransactionStore } from '../store/transaction';
 import { useAccountStore } from '../store/account';
 import { useCategoryStore } from '../store/category';
 import { formatCurrency } from '../utils/currency';
+import TransactionMassEditModal from './TransactionMassEditModal.vue';
 
 const transactionStore = useTransactionStore();
 const accountStore = useAccountStore();
 const categoryStore = useCategoryStore();
-const emit = defineEmits(['add-transaction']);
-
-const { transactions, accountId } = defineProps<{ transactions: ITransaction[], accountId: string }>();
+const emit = defineEmits(['clear']);
+const { accountId } = defineProps<{ accountId: string }>();
+const transactions = ref<Array<ITransaction>>(transactionStore.getTransactionsByAccountId(accountId));
 const defaultTransaction = {
   date: new Date(),
   accountId: accountId,
@@ -136,34 +179,61 @@ const defaultTransaction = {
   cleared: false
 };
 
-const transactionToEdit = ref<ITransaction>({});
-
-const dateInput = ref();
+const transactionToEdit = ref<ITransaction>();
 const isEditing = ref(false);
+const rowsSelected = ref<Array<ITransaction>>([]);
+const showMassEditModal = ref(false);
 
-const handleSave = () => {
-  transactionStore.save(transactionToEdit.value);
-  emit('add-transaction');
-  handleEdit();
+const getTransactions = () => {
+  transactions.value = transactionStore.getTransactionsByAccountId(accountId);
+}
+
+const handleTransactionAdded = () => {
+  getTransactions();
 }
 
 const handleEdit = () => {
   transactionToEdit.value = { ...defaultTransaction };
   isEditing.value = true;
-  focusDate();
 }
 
-const cancelEdit = () => {
-  isEditing.value = false;
+const handleCleared = (transaction: ITransaction) => {
+  transactionStore.clear(transaction._id, !transaction.cleared);
+  emit('clear');
 }
 
-const focusDate = () => {
-  nextTick(() => {
-    if (dateInput && dateInput.value) {
-      dateInput.value.focus();
-    }
-  })
+const handleSelect = (row: ITransaction, event: any) => {
+  const checked = event.target.checked;
+
+  if (checked) {
+    rowsSelected.value.push(row);
+  }
+  else {
+    rowsSelected.value.splice(
+      rowsSelected.value.findIndex(r => r._id === row._id), 1
+    )
+  }
 }
 
+const handleDelete = () => {
+  rowsSelected.value.forEach(row => {
+    transactionStore.delete(row._id)
+  });
+
+  rowsSelected.value = [];
+
+  getTransactions();
+
+}
+
+const handleMassClear = () => {
+  rowsSelected.value.forEach(row => {
+    transactionStore.clear(row._id, true)
+  });
+}
+
+const handleMassEdit = () => {
+  showMassEditModal.value = true;
+}
 
 </script>

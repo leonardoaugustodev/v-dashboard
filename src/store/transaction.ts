@@ -16,17 +16,19 @@ export const useTransactionStore = defineStore('transaction', {
       const accountStore = useAccountStore();
 
       return (accountId: string) =>
-        state.transactions.filter((c) => c.accountId === accountId).map(t => {
-          if(t.accountId){
-            t.account = accountStore.getAccount(t.accountId);
-          }
+        state.transactions
+          .filter((c) => c.accountId === accountId)
+          .map((t) => {
+            if (t.accountId) {
+              t.account = accountStore.getAccount(t.accountId);
+            }
 
-          if(t.categoryId){
-            t.category = categoryStore.getCategory(t.categoryId);
-          }
+            if (t.categoryId) {
+              t.category = categoryStore.getCategory(t.categoryId);
+            }
 
-          return t;
-        });
+            return t;
+          });
     },
   },
   actions: {
@@ -46,6 +48,21 @@ export const useTransactionStore = defineStore('transaction', {
           ...transaction,
         });
       }
+    },
+    clear(transactionId: string, clearOrUnclear: boolean) {
+      const transaction = this.transactions.find(
+        (t) => t._id === transactionId
+      );
+      if (transaction) {
+        transaction.cleared = clearOrUnclear;
+      }
+    },
+    delete(transactionId: string) {
+      console.log(transactionId)
+      this.transactions.splice(
+        this.transactions.findIndex((r) => r._id === transactionId),
+        1
+      );
     },
   },
   persist: true,

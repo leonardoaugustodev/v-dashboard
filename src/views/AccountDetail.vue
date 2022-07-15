@@ -1,6 +1,6 @@
 <template>
 
-  <div class="flex justify-between">
+  <div class="flex justify-between mb-2">
     <div class="w-full sm:w-1/1 xl:w-3/3">
       <div class="flex justify-between px-5 py-6 bg-white rounded-md shadow-sm">
         <div class="mx-5">
@@ -36,60 +36,28 @@
     </div>
   </div>
 
-  <TransactionTable :transactions="transactions" :account-id="accountId" @add-transaction="handleTransactionAdded" />
+  <TransactionTable :account-id="accountId" @clear="reloadSummaryValues" />
 
 </template>
 
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { watch, reactive, ref } from 'vue';
 import { useRoute } from "vue-router";
-import { ITransaction } from '../schemas/transaction';
 import { IAccount } from '../schemas/account';
 import { useAccountStore } from '../store/account';
-import { useTransactionStore } from '../store/transaction';
 import TransactionTable from '../components/TransactionTable.vue';
 import { formatCurrency } from '../utils/currency';
+import { useTransactionStore } from '../store/transaction';
 
 const route = useRoute();
 const accountId = <string>route.params.id;
 const accountStore = useAccountStore();
-const transactionStore = useTransactionStore();
-const transactions = ref<Array<ITransaction>>();
-const account = ref<IAccount>();
+const summaryValues = ref(accountStore.getSummaryValues(accountId));
+const account = ref<IAccount | any>(accountStore.getAccount(accountId));
 
-onMounted(() => {
-  account.value = accountStore.getAccount(accountId);
-  getTransactions();
-})
-
-const getTransactions = () => {
-  transactions.value = transactionStore.getTransactionsByAccountId(accountId);
+const reloadSummaryValues = () => {
+  summaryValues.value = accountStore.getSummaryValues(accountId);
 }
 
-const handleTransactionAdded = () => {
-  getTransactions();
-}
-
-const summaryValues = computed(() => {
-
-  const cleared = transactions.value?.filter(t => t.cleared);
-  const uncleared = transactions.value?.filter(t => !t.cleared);
-
-  const clearedTotal = cleared?.reduce((acc, cv) => {
-    return acc + (cv.inflow - cv.outflow);
-  }, 0);
-
-  const unclearedTotal = uncleared?.reduce((acc, cv) => {
-    return acc + (cv.inflow - cv.outflow);
-  }, 0);
-
-
-  return {
-    cleared: clearedTotal || 0,
-    uncleared: unclearedTotal || 0,
-    total: (clearedTotal || 0) + (unclearedTotal || 0)
-  }
-
-});
 </script>
