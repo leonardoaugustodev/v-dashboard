@@ -1,6 +1,7 @@
 <template>
   <div>
     <h3 class="text-3xl font-medium text-gray-700">Dashboard</h3>
+    <button @click="addData">Add Data</button>
 
     <div class="mt-4">
       <div class="flex flex-wrap -mx-6">
@@ -164,6 +165,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from '../database/firebase';
 
 interface User {
   name: string;
@@ -182,6 +185,21 @@ const testUser: User = {
   status: "Active",
   role: "Owner",
 };
+
+const addData = async () => {
+
+  try {
+    const docRef = await addDoc(collection(db, "users"), {
+      first: "Ada",
+      last: "Lovelace",
+      born: 1815
+    });
+    console.log("Document written with ID: ", docRef.id);
+  } catch (e) {
+    console.error("Error adding document: ", e);
+  }
+
+}
 
 const users = ref<User[]>([...Array(10).keys()].map(() => testUser));
 </script>

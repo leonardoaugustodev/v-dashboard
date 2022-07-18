@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { db } from '../database';
+import { doc, getDocs, setDoc, updateDoc, collection} from 'firebase/firestore';
+import { db } from '../database/firebase';
 import { IBudget, IParentRow, IChildRow } from '../schemas/budget';
 import { generateId } from '../utils/hash';
 import { useCategoryStore } from './category';
+import * as budgetStore from './budget';
 
 export const useBudgetStore = defineStore('budget', {
   state: () => {
@@ -51,6 +52,26 @@ export const useBudgetStore = defineStore('budget', {
     },
   },
   actions: {
+    async loadBudgets() {
+
+      const budgetDocs = await getDocs(collection(db, "budgets"));
+      this.budgets = [];
+      budgetDocs.forEach(doc => {
+        this.budgets.push(<IBudget>doc.data());
+      });
+
+      const parentRowDocs = await getDocs(collection(db, "parentBudgetRow"));
+      this.parentRows = [];
+      parentRowDocs.forEach(doc => {
+        this.parentRows.push(<IParentRow>doc.data());
+      });
+
+      const childRowDocs = await getDocs(collection(db, "childBudgetRow"));
+      this.childRows = [];
+      childRowDocs.forEach(doc => {
+        this.childRows.push(<IChildRow>doc.data());
+      });
+    },
     selectDate(month: number, year: number) {
       const foundBudget = this.budgets.find(
         (b) => b.month === month && b.year === year
@@ -63,10 +84,15 @@ export const useBudgetStore = defineStore('budget', {
       this.currentMonth = month;
       this.currentYear = year;
     },
-    createNewBudget(budget: IBudget) {
-      this.budgets.push(budget);
+    async createNewBudget(budget: IBudget) {
+      try {
+        await setDoc(doc(db, 'budgets', budget._id), budget);
+        this.budgets.push(budget);
+      } catch (e) {
+        console.error('Error adding document: ', e);
+      }
     },
-    addParentRow(categoryId: string) {
+    async addParentRow(categoryId: string) {
       console.log('Parent Row Adding');
       try {
         if (this.currentBudget) {
@@ -77,13 +103,18 @@ export const useBudgetStore = defineStore('budget', {
             isCollapsed: false,
           };
 
-          this.parentRows.push(parentRow);
+          try {
+            await setDoc(doc(db, 'parentBudgetRow', parentRow._id), parentRow);
+            this.parentRows.push(parentRow);
+          } catch (e) {
+            console.error('Error adding document: ', e);
+          }
         }
       } catch (err) {
         console.log(err);
       }
     },
-    addChildRow(parentId: string, categoryId: string) {
+    async addChildRow(parentId: string, categoryId: string) {
       try {
         const parentRow = this.parentRows.find((row) => row._id === parentId);
 
@@ -98,16 +129,22 @@ export const useBudgetStore = defineStore('budget', {
             balance: 0,
           };
 
-          this.childRows.push(childRow);
+          try {
+            await setDoc(doc(db, 'childBudgetRow', childRow._id), childRow);
+            this.childRows.push(childRow);
+          } catch (e) {
+            console.error('Error adding document: ', e);
+          }
         }
       } catch (err) {
         console.log(err);
       }
     },
-    updateChildRow(childRow: IChildRow) {
+    async updateChildRow(childRow: IChildRow) {
       try {
-
-        const index = this.childRows.findIndex(row => row._id === childRow._id);
+        const index = this.childRows.findIndex(
+          (row) => row._id === childRow._id
+        );
         console.log(childRow);
 
         const mergedRow = {
@@ -115,13 +152,17 @@ export const useBudgetStore = defineStore('budget', {
           ...childRow,
         };
 
-        this.childRows.splice(index, 1, mergedRow); 
-
+        try {
+          await updateDoc(doc(db, 'childBudgetRow', mergedRow._id), mergedRow);
+          this.childRows.splice(index, 1, mergedRow);
+        } catch (e) {
+          console.error('Error adding document: ', e);
+        }
       } catch (err) {
         console.error(err);
       }
     },
-    async cloneBudget(newMonth?: number, newYear?: number) {
+    cloneBudget(newMonth?: number, newYear?: number) {
       try {
         let rows: Array<IParentRow> = [];
 
@@ -147,5 +188,4 @@ export const useBudgetStore = defineStore('budget', {
       }
     },
   },
-  persist: true,
 });

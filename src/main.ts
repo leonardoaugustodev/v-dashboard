@@ -5,12 +5,12 @@ import './assets/main.css';
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
-// import { db } from './database';
+import { db } from "./database/firebase";
 
 import DashboardLayout from './components/DashboardLayout.vue';
 import EmptyLayout from './components/EmptyLayout.vue';
-import { useCategoryStore } from './store/category';
 import { useBudgetStore } from './store/budget';
+import { useCategoryStore } from './store/category';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -26,10 +26,13 @@ app.mount('#app');
 
 app.config.globalProperties.appName = 'Moneylee';
 app.config.globalProperties.$router = router;
-// app.config.globalProperties.$db = db;
+app.config.globalProperties.$db = db;
 
-// const categoryStore = useCategoryStore();
-// categoryStore.loadCategories();
 
-// const budgetStore = useBudgetStore();
-// budgetStore.loadBudgets();
+// Retrieve categories from database
+const categoryStore = useCategoryStore();
+categoryStore.loadCategories();
+
+// Retrieve the budget and rows from database
+const budgetStore = useBudgetStore();
+budgetStore.loadBudgets();

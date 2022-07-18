@@ -75,10 +75,10 @@ const closeModal = () => {
 }
 
 
-const handleSave = () => {
+const handleSave = async () => {
   try {
 
-    const storedCategory = categoryStore.getOrAddCategory({ ...categoryToEdit });
+    const storedCategory = await categoryStore.getOrAddCategory({ ...categoryToEdit });
     if (!storedCategory) return;
 
     if (isEdit) {

@@ -143,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, onMounted } from 'vue';
 import moment from 'moment';
 import { useBudgetStore } from '../store/budget';
 import { IChildRow } from '../schemas/budget';
@@ -252,6 +252,13 @@ const returnCategoryById = (categoryId: string) => {
     (cat) => cat._id === categoryId
   );
 }
+
+onMounted(() => {
+  // if(!store.currentBudget){
+  //   const { currentMonth, currentYear } = store;
+  //   store.cloneBudget(currentMonth, currentYear);
+  // }
+});
 
 
 </script>

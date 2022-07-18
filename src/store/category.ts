@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { ICategory } from '../schemas/category';
-import { db } from '../database';
+import { db } from '../database/firebase';
 import { generateId } from '../utils/hash';
+import { setDoc, doc, updateDoc, deleteDoc, getDocs, collection } from 'firebase/firestore';
 
 export const useCategoryStore = defineStore('category', {
   state: () => {
@@ -17,7 +18,7 @@ export const useCategoryStore = defineStore('category', {
     },
     getCategoriesPicklist(state) {
       return state.categories.flatMap((cat) => {
-        if (cat.isActive && cat.parentId ) {
+        if (cat.isActive && cat.parentId) {
           return {
             label: cat.name,
             value: cat._id,
@@ -28,7 +29,14 @@ export const useCategoryStore = defineStore('category', {
     },
   },
   actions: {
-    getOrAddCategory(category: ICategory) {
+    async loadCategories() {
+      const categoryDocs = await getDocs(collection(db, "categories"));
+      this.categories = [];
+      categoryDocs.forEach(doc => {
+        this.categories.push(<ICategory>doc.data());
+      });
+    },
+    async getOrAddCategory(category: ICategory) {
       try {
         const { parentId } = category;
         let index;
@@ -42,7 +50,13 @@ export const useCategoryStore = defineStore('category', {
 
         if (index < 0) {
           category = { _id: generateId('category'), ...category };
-          this.categories.push(category);
+
+          try {
+            await setDoc(doc(db, 'categories', category._id), category);
+            this.categories.push(category);
+          } catch (e) {
+            console.error('Error adding document: ', e);
+          }
         } else {
           category = this.categories[index];
         }
@@ -52,7 +66,7 @@ export const useCategoryStore = defineStore('category', {
         console.log(err);
       }
     },
-    updateCategory(category: ICategory) {
+    async updateCategory(category: ICategory) {
       if (!category._id) return;
 
       const index = this.categories.findIndex((c) => c._id === category._id);
@@ -62,13 +76,27 @@ export const useCategoryStore = defineStore('category', {
         ...category,
       };
 
-      this.categories[index] = mergedCategory;
+      try {
+        await updateDoc(
+          doc(db, 'childBudgetRow', mergedCategory._id),
+          mergedCategory
+        );
+        this.categories[index] = mergedCategory;
+      } catch (e) {
+        console.error('Error updating document: ', e);
+      }
     },
-    deleteCategory(categoryId: string) {
+    async deleteCategory(categoryId: string) {
       const index = this.categories.findIndex((c) => c._id === categoryId);
 
-      this.categories.splice(index, 1);
+      try {
+        const category = this.categories[index];
+        await deleteDoc(doc(db, 'categories', category._id));
+        this.categories.splice(index, 1);
+      } catch (e) {
+        console.error('Error adding document: ', e);
+      }
     },
   },
-  persist: true,
+  // persist: true,
 });
