@@ -1,20 +1,22 @@
 <template>
 
   <!-- New Transaction -->
-  <tr @keydown.esc="handleCancelEdit">
+  <tr @keydown.esc="handleCancelEdit" @keydown.enter.stop="handleSave">
     <td>
       <input type="date" ref="dateInput" v-model="transactionToEdit.date"
         class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" placeholder="Select date">
     </td>
     <td>
-      <SelectInput :options="accountStore.getAccountsPicklist" :value="transactionToEdit.accountId" @select="handleSelectAccount"/>
+      <SelectInput :options="accountStore.getAccountsPicklist" :value="transactionToEdit.accountId"
+        @select="handleSelectAccount" />
     </td>
     <td>
       <input type="text" ref="labelInput" v-model="transactionToEdit.memo"
         class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" />
     </td>
     <td>
-      <SelectInput :options="categoryStore.getCategoriesPicklist" :value="transactionToEdit.categoryId" @select="handleSelectCategory"/>
+      <SelectInput ref="categoryInput" :options="categoryStore.getCategoriesPicklist"
+        :value="transactionToEdit.categoryId" @select="handleSelectCategory" />
     </td>
     <td>
       <input type="number" v-model="transactionToEdit.inflow"
@@ -25,9 +27,18 @@
         class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
 
-    <td class="text-center">
-      <button @click="handleSave"
-        class="px-2 py-1 text-sm tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">Save</button>
+    <td class="text-center" v-if="showSaveButton">
+      <button @click="handleCancelEdit" class="px-2 py-1 text-xs rounded text-red-400 hover:bg-gray-50"><svg
+          xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg></button>
+      <button @click="handleSave" class="px-2 py-1 text-xs rounded text-teal-400 hover:bg-gray-50"><svg
+          xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg></button>
     </td>
   </tr>
 </template>
@@ -43,25 +54,26 @@ import { ITransaction } from '../schemas/transaction'
 import SelectInput from './SelectInput.vue'
 
 const { transaction, accountId, hideSaveButton } = defineProps(['transaction', 'accountId', 'hideSaveButton']);
-const emit = defineEmits(['add-transaction']);
+const emit = defineEmits(['add-transaction', 'cancel']);
 
 const dateInput = ref();
+const categoryInput = ref();
 const transactionStore = useTransactionStore();
 const categoryStore = useCategoryStore();
 const accountStore = useAccountStore();
 const isEditing = ref(false);
-const showSaveButton = ref(!!hideSaveButton); 
+const showSaveButton = ref(!hideSaveButton);
 
-const todayIso = moment().format('YYYY-MM-DD');
 const defaultTransaction = {
-  date: todayIso,
+  date: moment().format('YYYY-MM-DD'),
   accountId,
+  categoryId: '',
   inflow: 0,
   outflow: 0,
   cleared: false
 }
 
-const transactionToEdit = ref<ITransaction>(transaction || defaultTransaction);
+const transactionToEdit = ref<ITransaction>(transaction || { ...defaultTransaction });
 
 const handleEdit = () => {
   isEditing.value = true;
@@ -69,12 +81,15 @@ const handleEdit = () => {
 
 const handleSave = async () => {
   await transactionStore.save(transactionToEdit.value);
-  isEditing.value = false;
   emit('add-transaction');
+
+  resetFields();
+  focusDate();
 }
 
 const handleCancelEdit = () => {
   isEditing.value = false;
+  emit('cancel');
 }
 
 const handleSelectCategory = (categorySelected: string) => {
@@ -85,11 +100,22 @@ const handleSelectAccount = (accountSelected: string) => {
   transactionToEdit.value.accountId = accountSelected;
 }
 
+const resetFields = () => {
+  transactionToEdit.value = { ...defaultTransaction };
+  if (categoryInput && categoryInput.value) {
+    categoryInput.value.clearSelection();
+  }
+}
+
+const focusDate = () => {
+  if (dateInput && dateInput.value) {
+    dateInput.value.focus();
+  }
+}
+
 onMounted(() => {
   nextTick(() => {
-    if (dateInput && dateInput.value) {
-      dateInput.value.focus();
-    }
+    focusDate()
   })
 })
 

@@ -32,21 +32,17 @@
         <table class="min-full">
           <tbody>
             <template v-for="t in transactions" :key="t._id">
-              <TransactionNew :transaction="t" class="w-full" />
+              <TransactionNew :transaction="t" class="w-full" hide-save-button="true"/>
             </template>
           </tbody>
         </table>
 
-
         <!--Footer-->
         <div class="flex justify-end pt-2">
-          <button @click="closeModal"
-            class="p-2 mr-2 text-indigo-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-indigo-400 focus:outline-none">
-            Close
-          </button>
+          
           <button @click="handleSave"
-            class="p-2 font-sm tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
-            Save All
+            class="px-4 py-2 text-sm font-sm tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
+            Save
           </button>
         </div>
       </div>

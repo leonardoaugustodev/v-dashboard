@@ -1,6 +1,7 @@
 <template>
 
-  <TransactionMassEditModal v-if="showMassEditModal" :transactions="rowsSelected" />
+  <TransactionMassEditModal v-if="showMassEditModal" :transactions="rowsSelected"
+    @close-modal="showMassEditModal = false" @keydown.esc="showMassEditModal = false" />
 
   <div class="flex flex-col">
 
@@ -63,7 +64,7 @@
 
                     <button @click="handleMassClear"
                       class="text-blue-600 hover:text-blue-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                           d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -85,8 +86,8 @@
                 </div>
               </td>
             </tr>
-            <TransactionNew v-else @keydown.esc="isEditing = !isEditing" :account-id="accountId"
-              @add-transaction="handleTransactionAdded" />
+            <TransactionNew v-else @keydown.esc="cancelEdit" :account-id="accountId" @cancel="cancelEdit"
+              @add-transaction="handleTransactionAdded" :hide-save-button="false" />
 
             <tr v-for="(u, index) in transactions" :key="index">
 
@@ -130,7 +131,7 @@
               </td>
 
               <td class="py-2 text-sm leading-5 text-center border-b border-gray-200 whitespace-nowrap">
-                <button @click="handleCleared(u)">
+                <button @click="handleClear(u)">
                   <svg v-if="u.cleared" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20"
                     fill="#03a1fc">
                     <path fill-rule="evenodd"
@@ -168,11 +169,11 @@ import TransactionMassEditModal from './TransactionMassEditModal.vue';
 const transactionStore = useTransactionStore();
 const accountStore = useAccountStore();
 const categoryStore = useCategoryStore();
-const emit = defineEmits(['clear']);
+const emit = defineEmits(['update']);
 const { accountId } = defineProps<{ accountId: string }>();
 const transactions = ref<Array<ITransaction>>(transactionStore.getTransactionsByAccountId(accountId));
 const defaultTransaction = {
-  date: new Date(),
+  date: moment().format('YYYY-MM-DD'),
   accountId: accountId,
   inflow: 0,
   outflow: 0,
@@ -185,11 +186,14 @@ const rowsSelected = ref<Array<ITransaction>>([]);
 const showMassEditModal = ref(false);
 
 const getTransactions = () => {
+  console.log(transactionStore.transactions);
+  console.log('getting transactions');
   transactions.value = transactionStore.getTransactionsByAccountId(accountId);
 }
 
 const handleTransactionAdded = () => {
   getTransactions();
+  emit('update');
 }
 
 const handleEdit = () => {
@@ -197,15 +201,16 @@ const handleEdit = () => {
   isEditing.value = true;
 }
 
-const handleCleared = (transaction: ITransaction) => {
+const handleClear = (transaction: ITransaction) => {
   transactionStore.clear(transaction._id, !transaction.cleared);
-  emit('clear');
+  emit('update');
 }
 
 const handleSelect = (row: ITransaction, event: any) => {
   const checked = event.target.checked;
 
   if (checked) {
+    cancelEdit();
     rowsSelected.value.push(row);
   }
   else {
@@ -222,24 +227,39 @@ const handleDelete = () => {
     transactions.value.splice(index, 1);
   });
 
-  rowsSelected.value = [];
-
-  document.querySelectorAll('input[type=checkbox]')?.forEach(el => {
-    el.checked = false
-  });
-
+  clearSelection();
   getTransactions();
-
 }
 
 const handleMassClear = () => {
   rowsSelected.value.forEach(row => {
     transactionStore.clear(row._id, true)
   });
+
+  emit('update');
+  clearSelection();
 }
 
 const handleMassEdit = () => {
   showMassEditModal.value = true;
 }
+
+const clearSelection = () => {
+  rowsSelected.value = [];
+
+  document.querySelectorAll('input[type=checkbox]')?.forEach(el => {
+    el.checked = false
+  });
+}
+
+const cancelEdit = () => {
+  isEditing.value = false;
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    getTransactions();
+  }, 500)
+})
 
 </script>

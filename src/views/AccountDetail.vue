@@ -36,7 +36,7 @@
     </div>
   </div>
 
-  <TransactionTable :account-id="accountId" @clear="reloadSummaryValues" />
+  <TransactionTable :account-id="accountId" @update="reloadSummaryValues" />
 
 </template>
 

@@ -68,17 +68,29 @@ export const useTransactionStore = defineStore('transaction', {
           _id: generateId('transaction'),
           ...transaction,
         };
-        await setDoc(doc(db, 'transactions', newTransaction._id), newTransaction);
+        await setDoc(
+          doc(db, 'transactions', newTransaction._id),
+          newTransaction
+        );
 
         this.transactions.push(newTransaction);
       }
     },
-    clear(transactionId: string, clearOrUnclear: boolean) {
+    async clear(transactionId: string, clearOrUnclear: boolean) {
       const transaction = this.transactions.find(
         (t) => t._id === transactionId
       );
       if (transaction) {
-        transaction.cleared = clearOrUnclear;
+        try {
+          transaction.cleared = clearOrUnclear;
+
+          await updateDoc(
+            doc(db, 'transactions', transaction._id),
+            transaction
+          );
+        } catch (e) {
+          console.error('Error adding document: ', e);
+        }
       }
     },
     async delete(transactionId: string) {

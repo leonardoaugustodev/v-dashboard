@@ -1,6 +1,7 @@
 <template>
 
-  <div id="context" tabindex="0" class="menu relative text-sm cursor-pointer hover:bg-slate-50 rounded border-b-2 border-gray-300"
+  <div id="context" tabindex="0"
+    class="menu relative text-sm cursor-pointer hover:bg-slate-50 rounded border-b-2 border-gray-300"
     @click="focusParent($event)" @keyup.esc="closeMenu">
     <div id="context-menu" @click="toggleMenu" class="w-full flex justify-between items-center p-2">
       <span>{{ selectedValue.label }}</span>
@@ -44,10 +45,10 @@ const selectedValue = ref(options.find(o => o.value === value) || {
   value: null
 });
 
-const handleSelect = (option) => {
+const handleSelect = (option: any) => {
   selectedValue.value = option;
   openMenu.value = false;
-  // emit('select', option.value)
+  emit('select', option.value)
 }
 
 const closeMenu = () => {
@@ -61,6 +62,17 @@ const toggleMenu = () => {
 const focusParent = (event: any) => {
   event.target.focus();
 }
+
+const clearSelection = () => {
+  selectedValue.value = {
+    label: 'Select a value',
+    value: null
+  };
+}
+
+defineExpose({
+  clearSelection
+})
 
 
 </script>

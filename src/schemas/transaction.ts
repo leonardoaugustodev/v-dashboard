@@ -2,7 +2,7 @@ import { IAccount } from "./account";
 import { ICategory } from "./category";
 import { Database } from "./database";
 export interface ITransaction  extends Database{
-  date: Date;
+  date: string;
   accountId?: string;
   account?: IAccount;
   payeeId?: string;
