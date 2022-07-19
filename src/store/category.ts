@@ -29,7 +29,7 @@ export const useCategoryStore = defineStore('category', {
     },
   },
   actions: {
-    async loadCategories() {
+    async load() {
       const categoryDocs = await getDocs(collection(db, "categories"));
       this.categories = [];
       categoryDocs.forEach(doc => {
@@ -78,7 +78,7 @@ export const useCategoryStore = defineStore('category', {
 
       try {
         await updateDoc(
-          doc(db, 'childBudgetRow', mergedCategory._id),
+          doc(db, 'categories', mergedCategory._id),
           mergedCategory
         );
         this.categories[index] = mergedCategory;
@@ -86,7 +86,7 @@ export const useCategoryStore = defineStore('category', {
         console.error('Error updating document: ', e);
       }
     },
-    async deleteCategory(categoryId: string) {
+    async delete(categoryId: string) {
       const index = this.categories.findIndex((c) => c._id === categoryId);
 
       try {

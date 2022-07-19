@@ -33,7 +33,7 @@
           <label class="block my-2">
             <span class="block mb-1 text-sm font-medium text-slate-700">Name</span>
 
-            <input type="text" ref="labelInput" v-model="accountToEdit.name" 
+            <input type="text" ref="labelInput" v-model="accountToEdit.name"
               class="form-input w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500" />
           </label>
 
@@ -70,15 +70,22 @@
         </form>
 
         <!--Footer-->
-        <div class="flex justify-end pt-2">
-          <button @click="closeModal"
-            class="p-3 px-6 py-3 mr-2 text-indigo-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-indigo-400 focus:outline-none">
-            Close
+        <div class="flex justify-between pt-2">
+          <button @click="handleDelete"
+            class="px-4 py-2 text-sm mr-2 text-red-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-red-400 focus:outline-none">
+            Delete
           </button>
-          <button @click="handleSave"
-            class="px-6 py-3 font-medium tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
-            Save
-          </button>
+
+          <div class="flex justify-end">
+            <button @click="closeModal"
+              class="px-4 py-2 text-sm mr-2 text-indigo-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-indigo-400 focus:outline-none">
+              Close
+            </button>
+            <button @click="handleSave"
+              class="px-4 py-2 text-sm font-medium tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
+              Save
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -109,9 +116,15 @@ const isEdit = computed((): boolean => {
 });
 
 const handleSave = () => {
-  accountStore.saveAccount({
-    ...account, 
-    ...accountToEdit.value});
+  accountStore.save({
+    ...account,
+    ...accountToEdit.value
+  });
+  closeModal();
+}
+
+const handleDelete = () => {
+  accountStore.delete(account._id);
   closeModal();
 }
 

@@ -1,3 +1,12 @@
+import {
+  setDoc,
+  doc,
+  updateDoc,
+  getDocs,
+  collection,
+  deleteDoc,
+} from 'firebase/firestore';
+import { db } from '../database/firebase';
 import { defineStore } from 'pinia';
 import { ITransaction } from '../schemas/transaction';
 import { generateId } from '../utils/hash';
@@ -32,21 +41,36 @@ export const useTransactionStore = defineStore('transaction', {
     },
   },
   actions: {
-    save(transaction: ITransaction) {
+    async load() {
+      const transactionDocs = await getDocs(collection(db, 'transactions'));
+      this.transactions = [];
+      transactionDocs.forEach((doc) => {
+        this.transactions.push(<ITransaction>doc.data());
+      });
+    },
+    async save(transaction: ITransaction) {
       if (transaction._id) {
         const index = this.transactions.findIndex(
           (acc) => acc._id === transaction._id
         );
-
-        this.transactions.splice(index, 1, {
+        const mergedTransaction = {
           ...this.transactions[index],
           ...transaction,
-        });
+        };
+        await updateDoc(
+          doc(db, 'transactions', mergedTransaction._id),
+          mergedTransaction
+        );
+
+        this.transactions.splice(index, 1, mergedTransaction);
       } else {
-        this.transactions.push({
+        const newTransaction = {
           _id: generateId('transaction'),
           ...transaction,
-        });
+        };
+        await setDoc(doc(db, 'transactions', newTransaction._id), newTransaction);
+
+        this.transactions.push(newTransaction);
       }
     },
     clear(transactionId: string, clearOrUnclear: boolean) {
@@ -57,13 +81,16 @@ export const useTransactionStore = defineStore('transaction', {
         transaction.cleared = clearOrUnclear;
       }
     },
-    delete(transactionId: string) {
-      console.log(transactionId)
-      this.transactions.splice(
-        this.transactions.findIndex((r) => r._id === transactionId),
-        1
-      );
+    async delete(transactionId: string) {
+      const index = this.transactions.findIndex((c) => c._id === transactionId);
+
+      try {
+        await deleteDoc(doc(db, 'transactions', transactionId));
+        this.transactions.splice(index, 1);
+      } catch (e) {
+        console.error('Error adding document: ', e);
+      }
     },
   },
-  persist: true,
+  // persist: true,
 });

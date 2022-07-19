@@ -1,3 +1,12 @@
+import {
+  setDoc,
+  doc,
+  updateDoc,
+  getDocs,
+  collection,
+  deleteDoc,
+} from 'firebase/firestore';
+import { db } from '../database/firebase';
 import { defineStore } from 'pinia';
 import { IAccount } from '../schemas/account';
 import { generateId } from '../utils/hash';
@@ -79,21 +88,50 @@ export const useAccountStore = defineStore('account', {
     },
   },
   actions: {
-    saveAccount(account: IAccount) {
+    async load() {
+      const accountDocs = await getDocs(collection(db, 'accounts'));
+      this.accounts = [];
+      accountDocs.forEach((doc) => {
+        this.accounts.push(<IAccount>doc.data());
+      });
+    },
+    async save(account: IAccount) {
       if (account._id) {
         const index = this.accounts.findIndex((acc) => acc._id === account._id);
 
-        this.accounts.splice(index, 1, {
+        const mergedAccount = {
           ...this.accounts[index],
           ...account,
-        });
+        };
+
+        await updateDoc(doc(db, 'accounts', mergedAccount._id), mergedAccount);
+
+        this.accounts.splice(index, 1, mergedAccount);
       } else {
-        this.accounts.push({
-          _id: generateId('account'),
-          ...account,
-        });
+        try {
+          const newAccount = {
+            _id: generateId('account'),
+            ...account,
+          };
+
+          await setDoc(doc(db, 'accounts', newAccount._id), newAccount);
+
+          this.accounts.push(newAccount);
+        } catch (e) {
+          console.error('Error adding document: ', e);
+        }
+      }
+    },
+    async delete(accountId: string) {
+      const index = this.accounts.findIndex((c) => c._id === accountId);
+
+      try {
+        const account = this.accounts[index];
+        await deleteDoc(doc(db, 'accounts', accountId));
+        this.accounts.splice(index, 1);
+      } catch (e) {
+        console.error('Error adding document: ', e);
       }
     },
   },
-  persist: true,
 });

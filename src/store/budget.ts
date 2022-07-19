@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia';
-import { doc, getDocs, setDoc, updateDoc, collection} from 'firebase/firestore';
+import {
+  doc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  collection,
+  deleteDoc,
+} from 'firebase/firestore';
 import { db } from '../database/firebase';
 import { IBudget, IParentRow, IChildRow } from '../schemas/budget';
 import { generateId } from '../utils/hash';
@@ -52,23 +59,22 @@ export const useBudgetStore = defineStore('budget', {
     },
   },
   actions: {
-    async loadBudgets() {
-
-      const budgetDocs = await getDocs(collection(db, "budgets"));
+    async load() {
+      const budgetDocs = await getDocs(collection(db, 'budgets'));
       this.budgets = [];
-      budgetDocs.forEach(doc => {
+      budgetDocs.forEach((doc) => {
         this.budgets.push(<IBudget>doc.data());
       });
 
-      const parentRowDocs = await getDocs(collection(db, "parentBudgetRow"));
+      const parentRowDocs = await getDocs(collection(db, 'parentBudgetRow'));
       this.parentRows = [];
-      parentRowDocs.forEach(doc => {
+      parentRowDocs.forEach((doc) => {
         this.parentRows.push(<IParentRow>doc.data());
       });
 
-      const childRowDocs = await getDocs(collection(db, "childBudgetRow"));
+      const childRowDocs = await getDocs(collection(db, 'childBudgetRow'));
       this.childRows = [];
-      childRowDocs.forEach(doc => {
+      childRowDocs.forEach((doc) => {
         this.childRows.push(<IChildRow>doc.data());
       });
     },
@@ -185,6 +191,35 @@ export const useBudgetStore = defineStore('budget', {
         this.createNewBudget(newBudget);
       } catch (err) {
         console.log(err);
+      }
+    },
+    async deleteRow(row: IParentRow | IChildRow) {
+      if (row._id.startsWith('childBudgetRow_')) {
+        const index = this.childRows.findIndex((c) => c._id === row._id);
+
+        try {
+          await deleteDoc(doc(db, 'childBudgetRow', row._id));
+          this.childRows.splice(index, 1);
+        } catch (e) {
+          console.error('Error adding document: ', e);
+        }
+      } else {
+        const index = this.parentRows.findIndex((c) => c._id === row._id);
+
+        try {
+          const childrenRows = this.childRows
+            .filter((r) => r.parentId === row._id)
+            .forEach(async (r: IChildRow) => {
+              await deleteDoc(doc(db, 'childBudgetRow', r._id));
+              const index = this.childRows.findIndex((c) => c._id === row._id);
+              this.childRows.splice(index, 1);
+            });
+
+          await deleteDoc(doc(db, 'parentBudgetRow', row._id));
+          this.parentRows.splice(index, 1);
+        } catch (e) {
+          console.error('Error adding document: ', e);
+        }
       }
     },
   },

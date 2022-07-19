@@ -30,21 +30,26 @@
         </div>
 
         <!--Body-->
-        <form>
-          <input type="text" ref="modalInput" v-model="categoryToEdit.name" @keypress.enter="handleSave"
-            class="form-input w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500" />
-        </form>
+        <input type="text" ref="modalInput" v-model="categoryToEdit.name" @keydown.enter.stop="handleSave"
+          class="form-input w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500" />
 
         <!--Footer-->
-        <div class="flex justify-end pt-2">
-          <button @click="closeModal"
-            class="p-3 px-6 py-3 mr-2 text-indigo-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-indigo-400 focus:outline-none">
-            Close
+        <div class="flex justify-between pt-2">
+          <button @click="handleDelete"
+            class="px-4 py-2 text-sm mr-2 text-red-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-red-400 focus:outline-none">
+            Delete
           </button>
-          <button @click="handleSave"
-            class="px-6 py-3 font-medium tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
-            Save
-          </button>
+
+          <div class="flex justify-end">
+            <button @click="closeModal"
+              class="px-4 py-2 text-sm mr-2 text-indigo-500 bg-transparent rounded-lg hover:bg-gray-100 hover:text-indigo-400 focus:outline-none">
+              Close
+            </button>
+            <button @click="handleSave"
+              class="px-4 py-2 text-sm font-medium tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
+              Save
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -56,15 +61,17 @@ import { ref, computed, ComputedRef, nextTick, onMounted } from "vue";
 import { useCategoryStore } from "../store/category";
 import { useBudgetStore } from "../store/budget";
 import { ICategory } from "../schemas/category";
+import { IChildRow, IParentRow } from "../schemas/budget";
 
 const emit = defineEmits(['close-modal'])
 const categoryStore = useCategoryStore();
 const budgetStore = useBudgetStore();
 
-const { category, parentRowId, isEdit } = defineProps<{
+const { category, parentRowId, isEdit, row } = defineProps<{
   category: ICategory,
   parentRowId: any,
   isEdit: boolean,
+  row: IChildRow |  IParentRow
 }>()
 
 let categoryToEdit = <ICategory>(category);
@@ -82,7 +89,6 @@ const handleSave = async () => {
     if (!storedCategory) return;
 
     if (isEdit) {
-      console.log('editing');
       categoryStore.updateCategory(categoryToEdit);
     }
     else {
@@ -90,7 +96,6 @@ const handleSave = async () => {
         budgetStore.addChildRow(parentRowId, storedCategory._id);
       }
       else {
-        console.log('addind parent row');
         budgetStore.addParentRow(storedCategory._id)
       }
     }
@@ -98,6 +103,22 @@ const handleSave = async () => {
     closeModal();
   } catch (err) {
     console.log(err);
+  }
+}
+
+const handleDelete = () => {
+  try {
+    const categoryToDelete = categoryStore.categories.find(c => c._id === row.categoryId);
+
+    if(categoryToDelete){
+      categoryStore.delete(categoryToDelete._id);
+    }
+
+    budgetStore.deleteRow(row);
+    closeModal();
+
+  } catch (error) {
+
   }
 }
 

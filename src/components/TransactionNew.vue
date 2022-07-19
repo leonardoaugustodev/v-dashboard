@@ -25,7 +25,7 @@
         class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
 
-    <td class="text-center" v-if="showSaveButton">
+    <td class="text-center">
       <button @click="handleSave"
         class="px-2 py-1 text-sm tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">Save</button>
     </td>
@@ -67,8 +67,8 @@ const handleEdit = () => {
   isEditing.value = true;
 }
 
-const handleSave = () => {
-  transactionStore.save(transactionToEdit.value);
+const handleSave = async () => {
+  await transactionStore.save(transactionToEdit.value);
   isEditing.value = false;
   emit('add-transaction');
 }

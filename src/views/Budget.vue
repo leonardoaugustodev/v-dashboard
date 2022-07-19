@@ -1,6 +1,6 @@
 <template>
 
-  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId" :is-editing="isEditing"
+  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId" :is-edit="isEditing" :row="editingRow"
     @close-modal="handleCloseCategoryModal" />
 
   <div class="flex justify-between">
@@ -111,16 +111,17 @@
                         </svg>
                       </div>
                       <div class="text-sm font-bold leading-5 text-gray-900 ">
+                        <span @click="handleUpdateRowCategory(u)" class="hover:underline hover:cursor-pointer">
                         {{ u.category?.name }}
+                        </span>
                       </div>
 
                     </div>
                     <div>
                       <div class="px-2">
-                        <button
-                          class="px-2 rounded outline opacity-20 outline-1 outline-blue-400 bg-blue-300 hover:opacity-60"
+                        <button class="px-2 rounded opacity-20  hover:opacity-60"
                           @click="handleNewCategory(u.category?._id, u._id)">
-                          <span class="text-xs text-center">New sub-category</span>
+                          <span class="text-xs text-center">+ sub category</span>
                         </button>
                       </div>
                     </div>
@@ -131,7 +132,7 @@
 
               <template v-if="u.children?.length && !u.isCollapsed">
                 <BudgetChildRow v-for="(child, cIndex) in u.children" :key="cIndex" :row="child"
-                  @update-category="handleUpdateRowCategory(child)" @row-select="handleSelectRow"/>
+                  @update-category="handleUpdateRowCategory(child)" @row-select="handleSelectRow" />
               </template>
             </template>
 
@@ -146,7 +147,7 @@
 import { ref, computed, nextTick, onMounted } from 'vue';
 import moment from 'moment';
 import { useBudgetStore } from '../store/budget';
-import { IChildRow } from '../schemas/budget';
+import { IChildRow, IParentRow } from '../schemas/budget';
 import { ICategory } from '../schemas/category';
 import { formatCurrency } from '../utils/currency';
 import { generateId } from '../utils/hash';
@@ -213,6 +214,7 @@ const navigate = (decreaseOrIncrease: number) => {
 const showCategoryModal = ref(false);
 const isEditing = ref(false);
 const parentRowId = ref();
+const editingRow = ref();
 
 const defaultCategory = <ICategory>({
   name: '',
@@ -231,11 +233,12 @@ const handleNewCategory = (parentId: any, pRowId: any) => {
   isEditing.value = false;
 }
 
-const handleUpdateRowCategory = (row: IChildRow) => {
+const handleUpdateRowCategory = (row: IChildRow | IParentRow) => {
   if (row.category) {
     newCategory.value = { ...row.category };
-    showCategoryModal.value = true;
     isEditing.value = true;
+    editingRow.value = row;
+    showCategoryModal.value = true;
   }
 }
 

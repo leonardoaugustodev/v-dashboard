@@ -216,11 +216,17 @@ const handleSelect = (row: ITransaction, event: any) => {
 }
 
 const handleDelete = () => {
-  rowsSelected.value.forEach(row => {
-    transactionStore.delete(row._id)
+  rowsSelected.value.forEach(async (row) => {
+    await transactionStore.delete(row._id)
+    const index = transactions.value.findIndex((c) => c._id === row._id);
+    transactions.value.splice(index, 1);
   });
 
   rowsSelected.value = [];
+
+  document.querySelectorAll('input[type=checkbox]')?.forEach(el => {
+    el.checked = false
+  });
 
   getTransactions();
 
