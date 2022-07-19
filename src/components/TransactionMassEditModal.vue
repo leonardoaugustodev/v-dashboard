@@ -31,15 +31,15 @@
         <!--Body-->
         <table class="min-full">
           <tbody>
-            <template v-for="t in transactions" :key="t._id">
-              <TransactionNew :transaction="t" class="w-full" hide-save-button="true"/>
-            </template>
+            <div v-for="t in transactionsToEdit" :key="t._id" class="my-2">
+              <TransactionNew :transaction="t" class="w-full " hide-save-button="true" />
+            </div>
           </tbody>
         </table>
 
         <!--Footer-->
         <div class="flex justify-end pt-2">
-          
+
           <button @click="handleSave"
             class="px-4 py-2 text-sm font-sm tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
             Save
@@ -51,22 +51,26 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { ITransaction } from "../schemas/transaction";
+import { useTransactionStore } from "../store/transaction";
 import TransactionNew from './TransactionNew.vue';
 
-const emit = defineEmits(['close-modal'])
+const transactionStore = useTransactionStore();
+const emit = defineEmits(['close-modal', 'save'])
 const { transactions } = defineProps<{
   transactions: Array<ITransaction>
 }>()
+
+const transactionsToEdit = ref([...transactions]);
 
 const closeModal = () => {
   emit('close-modal');
 }
 
 const handleSave = () => {
-  // accountStore.saveAccount({
-  //   ...account, 
-  //   ...accountToEdit.value});
+  transactionStore.bulkSave(transactionsToEdit.value);
+  emit('save');
   closeModal();
 }
 

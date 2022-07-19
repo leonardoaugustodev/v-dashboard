@@ -5,6 +5,7 @@ import {
   getDocs,
   collection,
   deleteDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '../database/firebase';
 import { defineStore } from 'pinia';
@@ -75,6 +76,18 @@ export const useTransactionStore = defineStore('transaction', {
 
         this.transactions.push(newTransaction);
       }
+    },
+    async bulkSave(transactions: ITransaction[]) {
+      try {
+        const batch = writeBatch(db);
+
+        transactions.forEach((t) => {
+          const ref = doc(db, 'transactions', t._id);
+          batch.update(ref, { ...t });
+        });
+
+        await batch.commit();
+      } catch (error) {}
     },
     async clear(transactionId: string, clearOrUnclear: boolean) {
       const transaction = this.transactions.find(

@@ -1,6 +1,6 @@
 <template>
 
-  <TransactionMassEditModal v-if="showMassEditModal" :transactions="rowsSelected"
+  <TransactionMassEditModal v-if="showMassEditModal" :transactions="rowsSelected" @save="handleTransactionAdded"
     @close-modal="showMassEditModal = false" @keydown.esc="showMassEditModal = false" />
 
   <div class="flex flex-col">
@@ -70,6 +70,16 @@
                           d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                       </svg>
                       <span class="ml-1">Clear</span>
+                    </button>
+
+                    <button @click="handleMassUnclear"
+                      class="text-purple-600 hover:text-purple-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span class="ml-1">Unclear</span>
                     </button>
                   </div>
 
@@ -234,6 +244,15 @@ const handleDelete = () => {
 const handleMassClear = () => {
   rowsSelected.value.forEach(row => {
     transactionStore.clear(row._id, true)
+  });
+
+  emit('update');
+  clearSelection();
+}
+
+const handleMassUnclear = () => {
+  rowsSelected.value.forEach(row => {
+    transactionStore.clear(row._id, false)
   });
 
   emit('update');
