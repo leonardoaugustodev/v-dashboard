@@ -27,23 +27,23 @@
 
         <div class="flex self-end">
           <div class="flex flex-col items-center mx-2">
-            <div>{{formatCurrency(0)}}</div>
+            <div>{{ formatCurrency(0) }}</div>
             <div class="text-xs text-gray-500">Not budgeted last month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{formatCurrency(0)}}</div>
+            <div>{{ formatCurrency(0) }}</div>
             <div class="text-xs text-gray-500">Overspent last month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{formatCurrency(0)}}</div>
+            <div>{{ formatCurrency(0) }}</div>
             <div class="text-xs text-gray-500">Income this month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{formatCurrency(0)}}</div>
+            <div>{{ formatCurrency(0) }}</div>
             <div class="text-xs text-gray-500">Budgeted this month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{formatCurrency(0)}}</div>
+            <div>{{ formatCurrency(0) }}</div>
             <div class="text-xs text-gray-500">Available to budget | Overbudgeted</div>
           </div>
 
@@ -176,6 +176,7 @@ import CategoryModal from '../components/CategoryModal.vue';
 import { useCategoryStore } from '../store/category';
 import BudgetChildRow from '../components/BudgetChildRow.vue';
 import { useTransactionStore } from '../store/transaction';
+import { ITransaction } from '../schemas/transaction';
 const store = useBudgetStore();
 const categoryStore = useCategoryStore();
 const transactionStore = useTransactionStore();
@@ -207,6 +208,30 @@ const selectedSummary = computed(() => {
     balance: 0
   })
 });
+
+const summary = computed(() => {
+
+  // let transactions = <Array<ITransaction>>[];
+  // if (store?.currentBudget) {
+  //   transactions = transactionStore.getTransactionsByMonth(
+  //     store.currentBudget.month, store.currentBudget.year
+  //   );
+
+  // }
+
+  // return transactions.reduce((pv, cv) => {
+  //   return {
+  //     budgeted: pv.budgeted + (cv.budgeted || 0),
+  //     activity: pv.activity + (cv.activity || 0),
+  //     balance: pv.balance + (cv.balance || 0),
+  //   }
+  // }, {
+  //   budgeted: 0,
+  //   activity: 0,
+  //   balance: 0
+  // })
+
+})
 
 const budgetMonth = computed(() => {
   let currentMonth = store.currentBudget?.month || new Date().getMonth();
@@ -280,9 +305,7 @@ const returnCategoryById = (categoryId: string) => {
 }
 
 const getMonthTransactions = () => {
-  transactionStore.getTransactionsByMonth(
-    store.currentBudget.month, budgetYear
-  );
+
 }
 
 onMounted(() => {

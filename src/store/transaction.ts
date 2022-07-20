@@ -13,6 +13,7 @@ import { ITransaction } from '../schemas/transaction';
 import { generateId } from '../utils/hash';
 import { useAccountStore } from './account';
 import { useCategoryStore } from './category';
+import moment from 'moment';
 
 export const useTransactionStore = defineStore('transaction', {
   state: () => {
@@ -40,11 +41,13 @@ export const useTransactionStore = defineStore('transaction', {
             return t;
           });
     },
-    getTransactionsByMonth(state){
-      return (month: string, year: string) => {
-        
-      }  
-    }
+    getTransactionsByMonth(state) {
+      return (month: number, year: number) =>
+        state.transactions.filter((t) => {
+          const date = moment(t.date);
+          return date.month() === month && date.year() === year;
+        });
+    },
   },
   actions: {
     async load() {
