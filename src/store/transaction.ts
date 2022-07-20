@@ -40,6 +40,11 @@ export const useTransactionStore = defineStore('transaction', {
             return t;
           });
     },
+    getTransactionsByMonth(state){
+      return (month: string, year: string) => {
+        
+      }  
+    }
   },
   actions: {
     async load() {
