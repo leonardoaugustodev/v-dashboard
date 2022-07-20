@@ -1,7 +1,7 @@
 <template>
 
-  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId" :is-edit="isEditing" :row="editingRow"
-    @close-modal="handleCloseCategoryModal" />
+  <CategoryModal v-if="showCategoryModal" :category="newCategory" :parent-row-id="parentRowId" :is-edit="isEditing"
+    :row="editingRow" @close-modal="handleCloseCategoryModal" />
 
   <div class="flex justify-between">
     <div class="w-full sm:w-1/1 xl:w-3/3">
@@ -25,8 +25,29 @@
           </button>
         </div>
 
-        <div class="flex">
-          <div class="mx-5">
+        <div class="flex self-end">
+          <div class="flex flex-col items-center mx-2">
+            <div>{{formatCurrency(0)}}</div>
+            <div class="text-xs text-gray-500">Not budgeted last month</div>
+          </div>
+          <div class="flex flex-col items-center mx-2">
+            <div>{{formatCurrency(0)}}</div>
+            <div class="text-xs text-gray-500">Overspent last month</div>
+          </div>
+          <div class="flex flex-col items-center mx-2">
+            <div>{{formatCurrency(0)}}</div>
+            <div class="text-xs text-gray-500">Income this month</div>
+          </div>
+          <div class="flex flex-col items-center mx-2">
+            <div>{{formatCurrency(0)}}</div>
+            <div class="text-xs text-gray-500">Budgeted this month</div>
+          </div>
+          <div class="flex flex-col items-center mx-2">
+            <div>{{formatCurrency(0)}}</div>
+            <div class="text-xs text-gray-500">Available to budget | Overbudgeted</div>
+          </div>
+
+          <!-- <div class="mx-5">
             <h4 class="text-2xl font-semibold text-gray-700">{{ formatCurrency(selectedSummary.budgeted) }}</h4>
             <div class="text-gray-500">Budgeted</div>
           </div>
@@ -47,7 +68,7 @@
           <div class="mx-5">
             <h4 class="text-2xl font-semibold text-gray-700">{{ formatCurrency(selectedSummary.balance) }}</h4>
             <div class="text-gray-500">Balance</div>
-          </div>
+          </div> -->
         </div>
 
 
@@ -112,7 +133,7 @@
                       </div>
                       <div class="text-sm font-bold leading-5 text-gray-900 ">
                         <span @click="handleUpdateRowCategory(u)" class="hover:underline hover:cursor-pointer">
-                        {{ u.category?.name }}
+                          {{ u.category?.name }}
                         </span>
                       </div>
 
@@ -154,8 +175,10 @@ import { generateId } from '../utils/hash';
 import CategoryModal from '../components/CategoryModal.vue';
 import { useCategoryStore } from '../store/category';
 import BudgetChildRow from '../components/BudgetChildRow.vue';
+import { useTransactionStore } from '../store/transaction';
 const store = useBudgetStore();
 const categoryStore = useCategoryStore();
+const transactionStore = useTransactionStore();
 
 const selectedRows = ref<Array<IChildRow>>([]);
 
@@ -253,6 +276,12 @@ const handleCloseCategoryModal = () => {
 const returnCategoryById = (categoryId: string) => {
   return categoryStore.categories.find(
     (cat) => cat._id === categoryId
+  );
+}
+
+const getMonthTransactions = () => {
+  transactionStore.getTransactionsByMonth(
+    store.currentBudget.month, budgetYear
   );
 }
 
