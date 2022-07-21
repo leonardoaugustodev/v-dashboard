@@ -11,7 +11,9 @@ import { db } from '../database/firebase';
 import { IBudget, IParentRow, IChildRow } from '../schemas/budget';
 import { generateId } from '../utils/hash';
 import { useCategoryStore } from './category';
+import { useTransactionStore } from './transaction';
 import * as budgetStore from './budget';
+import moment from 'moment';
 
 export const useBudgetStore = defineStore('budget', {
   state: () => {
@@ -25,37 +27,14 @@ export const useBudgetStore = defineStore('budget', {
   },
   getters: {
     currentBudget: (state): IBudget | undefined => {
-      const categoryStore = useCategoryStore();
-      const foundBudget = state.budgets.find(
-        (b) => b.month === state.currentMonth && b.year === state.currentYear
-      );
-
-      if (foundBudget) {
-        foundBudget.rows = <Array<IParentRow>>state.parentRows.map((pRow) => {
-          const children = state.childRows.flatMap((cRow) => {
-            if (
-              cRow.parentId === pRow._id &&
-              cRow.budgetId === foundBudget._id
-            ) {
-              const category = categoryStore.getCategory(cRow.categoryId);
-              return {
-                ...cRow,
-                category,
-              };
-            }
-            return [];
-          });
-
-          const category = categoryStore.getCategory(pRow.categoryId);
-
-          return {
-            ...pRow,
-            children,
-            category,
-          };
-        });
-        return foundBudget;
-      }
+      const store = budgetStore.useBudgetStore();
+      return store.build(state.currentMonth, state.currentYear);
+    },
+    previousBudget: (state): IBudget | undefined => {
+      const currentDate = moment([state.currentYear, state.currentMonth, 1]);
+      const lastMonth = currentDate.subtract(1, 'month');
+      const store = budgetStore.useBudgetStore();
+      return store.build(lastMonth.month(), lastMonth.year());
     },
   },
   actions: {
@@ -220,6 +199,90 @@ export const useBudgetStore = defineStore('budget', {
         } catch (e) {
           console.error('Error adding document: ', e);
         }
+      }
+    },
+    build(month: number, year: number) {
+      const categoryStore = useCategoryStore();
+      const transactionStore = useTransactionStore();
+
+      const foundBudget = this.budgets.find(
+        (b) => b.month === month && b.year === year
+      );
+
+      if (foundBudget) {
+        let income = 0;
+        let budgeted = 0;
+        let available = 0;
+
+        foundBudget.transactions = transactionStore.getTransactionsByMonth(
+          month,
+          year
+        );
+
+        income = foundBudget.transactions.reduce((acc, cv) => {
+          return acc + cv.inflow;
+        }, 0);
+
+        budgeted = this.childRows
+          .filter((r) => {
+            return r.budgetId === foundBudget._id;
+          })
+          .reduce((acc, cv) => acc + (cv.budgeted || 0), 0);
+
+        available = income - budgeted;
+
+        foundBudget.rows = <Array<IParentRow>>this.parentRows.map((pRow) => {
+          const children = this.childRows.flatMap((cRow) => {
+            if (
+              cRow.parentId === pRow._id &&
+              cRow.budgetId === foundBudget._id
+            ) {
+              let activity = 0;
+              let balance = 0;
+              if (foundBudget.transactions?.length) {
+                const categoryTransactions = foundBudget.transactions.filter(
+                  (t) => {
+                    return t.categoryId === cRow.categoryId;
+                  }
+                );
+
+                console.log(cRow.categoryId, categoryTransactions);
+
+                activity = categoryTransactions.reduce(
+                  (acc, cv) => acc + (cv.inflow - cv.outflow),
+                  0
+                );
+
+                balance = (cRow.budgeted || 0) + activity;
+              }
+
+              const category = categoryStore.getCategory(cRow.categoryId);
+              return {
+                ...cRow,
+                category,
+                activity: Math.abs(activity || 0),
+                balance,
+              };
+            }
+            return [];
+          });
+
+          const category = categoryStore.getCategory(pRow.categoryId);
+
+          return {
+            ...pRow,
+            children,
+            category,
+          };
+        });
+
+        return {
+          ...foundBudget,
+          income,
+          budgeted,
+          available,
+        };
+      } else {
       }
     },
   },

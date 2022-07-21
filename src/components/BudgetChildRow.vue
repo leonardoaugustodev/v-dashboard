@@ -13,21 +13,23 @@
     </td>
     <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
       <span @click="handleBudgetedClick" v-if="!editBudgeted"
-        class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
+        class="inline-flex px-2 text-xs font-semibold leading-5 text-indigo-800 bg-indigo-100 rounded-full">
         {{ formatCurrency(row.budgeted) }}
       </span>
-      <input v-if="editBudgeted"  @focus="$event.target.select()" @keypress.enter="saveChange" @keydown.esc="cancelChange" ref="budgetedInput" type="number" v-model="editableRow.budgeted"
-        class="w-20 h-6 text-xs font-semibold leading-5 text-green-800 bg-green-100 border-green-200 rounded-full">
+      <input v-if="editBudgeted" @focus="$event.target.select()" @keypress.enter="saveChange"
+        @keydown.esc="cancelChange" ref="budgetedInput" type="number" v-model="editableRow.budgeted"
+        class="w-20 h-6 text-xs font-semibold leading-5 text-indigo-800 bg-indigo-100 border-indigo-200 rounded-full">
     </td>
 
     <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
-      <span class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
+      <span class="inline-flex px-2 text-xs font-semibold leading-5 text-red-800 bg-red-100 rounded-full">
         {{ formatCurrency(row.activity) }}
       </span>
     </td>
 
     <td class="w-min px-2 py-2 border-b border-gray-200 whitespace-nowrap text-right">
-      <span class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
+      <span class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full"
+        :class="row.balance < 0 ? 'text-red-800 bg-red-100' : 'text-green-800 bg-green-100'">
         {{ formatCurrency(row.balance) }}
       </span>
     </td>
@@ -35,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick} from 'vue';
+import { ref, nextTick } from 'vue';
 import { useBudgetStore } from '../store/budget';
 import { formatCurrency } from '../utils/currency';
 import { IChildRow } from '../schemas/budget'

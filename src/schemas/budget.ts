@@ -1,10 +1,15 @@
 import { IAccount } from './account';
 import { ICategory } from './category';
 import { Database } from './database';
+import { ITransaction } from './transaction';
 export interface IBudget extends Database{
   month: number;
   year: number;
   rows?: Array<IParentRow>;
+  transactions?: Array<ITransaction>;
+  budgeted?: number;
+  income?: number;
+  available?: number;
 }
 
 export interface IParentRow extends Database{

@@ -35,15 +35,15 @@
             <div class="text-xs text-gray-500">Overspent last month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(summary.income) }}</div>
+            <div>{{ formatCurrency(budgetStore.currentBudget?.income) }}</div>
             <div class="text-xs text-gray-500">Income this month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(summary.budgeted) }}</div>
+            <div>{{ formatCurrency(budgetStore.currentBudget?.budgeted) }}</div>
             <div class="text-xs text-gray-500">Budgeted this month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(summary.available) }}</div>
+            <div>{{ formatCurrency(budgetStore.currentBudget?.available) }}</div>
             <div class="text-xs text-gray-500">Available to budget | Overbudgeted</div>
           </div>
 
@@ -223,15 +223,15 @@ const summary = computed(() => {
       budgetStore.currentBudget.month, budgetStore.currentBudget.year
     );
 
-    summary.income = transactions.reduce((acc, cv) => {
-      return acc + cv.inflow
-    }, 0);
+    // summary.income = transactions.reduce((acc, cv) => {
+    //   return acc + cv.inflow
+    // }, 0);
 
-    summary.budgeted = budgetStore.childRows.filter(r => {
-      return r.budgetId === budgetStore.currentBudget?._id
-    }).reduce((acc, cv) => acc + (cv.budgeted || 0), 0);
+    // summary.budgeted = budgetStore.childRows.filter(r => {
+    //   return r.budgetId === budgetStore.currentBudget?._id
+    // }).reduce((acc, cv) => acc + (cv.budgeted || 0), 0);
 
-    summary.available = summary.income - summary.budgeted;
+    // summary.available = summary.income - summary.budgeted;
   }
 
   return summary;
@@ -249,19 +249,9 @@ const budgetYear = computed(() => {
 
 const navigate = (decreaseOrIncrease: number) => {
   const { currentMonth, currentYear } = budgetStore;
-
-  let newMonth = currentMonth + decreaseOrIncrease;
-  let newYear = currentYear;
-  if (newMonth < 0) {
-    newMonth = 11;
-    newYear--;
-  }
-  else if (newMonth > 11) {
-    newMonth = 0;
-    newYear++;
-  }
-
-  budgetStore.selectDate(newMonth, newYear);
+  const currentDate = moment([currentYear, currentMonth, 1]);
+  const newDate = currentDate.add(decreaseOrIncrease, 'month');
+  budgetStore.selectDate(newDate.month(), newDate.year());
 }
 
 const showCategoryModal = ref(false);
