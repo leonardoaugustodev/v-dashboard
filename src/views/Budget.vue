@@ -35,15 +35,15 @@
             <div class="text-xs text-gray-500">Overspent last month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(0) }}</div>
+            <div>{{ formatCurrency(summary.income) }}</div>
             <div class="text-xs text-gray-500">Income this month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(0) }}</div>
+            <div>{{ formatCurrency(summary.budgeted) }}</div>
             <div class="text-xs text-gray-500">Budgeted this month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(0) }}</div>
+            <div>{{ formatCurrency(summary.available) }}</div>
             <div class="text-xs text-gray-500">Available to budget | Overbudgeted</div>
           </div>
 
@@ -110,7 +110,7 @@
           </thead>
 
           <tbody class="bg-white">
-            <template v-for="(u, index) in store.currentBudget?.rows" :key="index">
+            <template v-for="(u, index) in budgetStore.currentBudget?.rows" :key="index">
 
               <tr class="bg-slate-100">
                 <td class="w-auto px-2 py-2 border-b border-gray-200 whitespace-nowrap text-left " colspan="4">
@@ -177,7 +177,7 @@ import { useCategoryStore } from '../store/category';
 import BudgetChildRow from '../components/BudgetChildRow.vue';
 import { useTransactionStore } from '../store/transaction';
 import { ITransaction } from '../schemas/transaction';
-const store = useBudgetStore();
+const budgetStore = useBudgetStore();
 const categoryStore = useCategoryStore();
 const transactionStore = useTransactionStore();
 
@@ -211,39 +211,44 @@ const selectedSummary = computed(() => {
 
 const summary = computed(() => {
 
-  // let transactions = <Array<ITransaction>>[];
-  // if (store?.currentBudget) {
-  //   transactions = transactionStore.getTransactionsByMonth(
-  //     store.currentBudget.month, store.currentBudget.year
-  //   );
+  let summary = {
+    income: 0,
+    budgeted: 0,
+    available: 0
+  };
 
-  // }
+  let transactions = <Array<ITransaction>>[];
+  if (budgetStore?.currentBudget) {
+    transactions = transactionStore.getTransactionsByMonth(
+      budgetStore.currentBudget.month, budgetStore.currentBudget.year
+    );
 
-  // return transactions.reduce((pv, cv) => {
-  //   return {
-  //     budgeted: pv.budgeted + (cv.budgeted || 0),
-  //     activity: pv.activity + (cv.activity || 0),
-  //     balance: pv.balance + (cv.balance || 0),
-  //   }
-  // }, {
-  //   budgeted: 0,
-  //   activity: 0,
-  //   balance: 0
-  // })
+    summary.income = transactions.reduce((acc, cv) => {
+      return acc + cv.inflow
+    }, 0);
+
+    summary.budgeted = budgetStore.childRows.filter(r => {
+      return r.budgetId === budgetStore.currentBudget?._id
+    }).reduce((acc, cv) => acc + (cv.budgeted || 0), 0);
+
+    summary.available = summary.income - summary.budgeted;
+  }
+
+  return summary;
 
 })
 
 const budgetMonth = computed(() => {
-  let currentMonth = store.currentBudget?.month || new Date().getMonth();
+  let currentMonth = budgetStore.currentBudget?.month || new Date().getMonth();
   return moment().month(currentMonth).format('MMMM')
 })
 
 const budgetYear = computed(() => {
-  return moment().year(store.currentBudget?.year || new Date().getFullYear()).format('YYYY')
+  return moment().year(budgetStore.currentBudget?.year || new Date().getFullYear()).format('YYYY')
 })
 
 const navigate = (decreaseOrIncrease: number) => {
-  const { currentMonth, currentYear } = store;
+  const { currentMonth, currentYear } = budgetStore;
 
   let newMonth = currentMonth + decreaseOrIncrease;
   let newYear = currentYear;
@@ -256,7 +261,7 @@ const navigate = (decreaseOrIncrease: number) => {
     newYear++;
   }
 
-  store.selectDate(newMonth, newYear);
+  budgetStore.selectDate(newMonth, newYear);
 }
 
 const showCategoryModal = ref(false);
@@ -302,10 +307,6 @@ const returnCategoryById = (categoryId: string) => {
   return categoryStore.categories.find(
     (cat) => cat._id === categoryId
   );
-}
-
-const getMonthTransactions = () => {
-
 }
 
 onMounted(() => {
