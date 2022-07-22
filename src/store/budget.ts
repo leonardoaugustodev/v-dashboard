@@ -34,6 +34,7 @@ export const useBudgetStore = defineStore('budget', {
       const currentDate = moment([state.currentYear, state.currentMonth, 1]);
       const lastMonth = currentDate.subtract(1, 'month');
       const store = budgetStore.useBudgetStore();
+      console.log('PreviousBudget');
       return store.build(lastMonth.month(), lastMonth.year());
     },
   },
@@ -200,8 +201,9 @@ export const useBudgetStore = defineStore('budget', {
           console.error('Error adding document: ', e);
         }
       }
-    },
+    }, 
     build(month: number, year: number) {
+      console.log('Building Budget', month, year);
       const categoryStore = useCategoryStore();
       const transactionStore = useTransactionStore();
 
@@ -210,6 +212,7 @@ export const useBudgetStore = defineStore('budget', {
       );
 
       if (foundBudget) {
+        
         let income = 0;
         let budgeted = 0;
         let available = 0;
@@ -276,11 +279,58 @@ export const useBudgetStore = defineStore('budget', {
           };
         });
 
+        // Last Month calculation
+        let notBudgetLastMonth = 0; // difference between all incomes and all budgetes in the child rows
+        let overspentLastMonth = 0; // difference between budgeted and outflows from last month
+
+        const currentDate = moment([year, month, 1]);
+        const lastMonthDate = moment(currentDate).subtract(1, 'month');
+
+        const pastBudgetsIds = this.budgets.filter(b => {
+          const pastBudgetDate = moment([b.year, b.month, 1]);
+          return currentDate.isAfter(pastBudgetDate, 'month');
+        }).map(b => b._id);
+
+        const lastMonthBudgetId = this.budgets.find(b => {
+          const budgetDate = moment([b.year, b.month, 1]);
+          return budgetDate.month() === lastMonthDate.month() && budgetDate.year() === lastMonthDate.year()
+        })?._id;
+
+        const pastChildRows = this.childRows.filter(row => {
+          return pastBudgetsIds.includes(row.budgetId);
+        });
+
+        const pastMonthsBudgeted = pastChildRows.reduce((acc, cv) => acc + (cv.budgeted || 0), 0);
+
+        const lastMonthChildRows = pastChildRows.filter(row => {
+          console.log(lastMonthBudgetId, row.budgetId);
+          return row.budgetId === lastMonthBudgetId;
+        });
+
+        const lastMonthBudgeted = lastMonthChildRows.reduce((acc, cv) => acc + (cv.budgeted || 0), 0);
+
+        const pastTransactions = transactionStore.transactions.filter(t => {
+          return moment(t.date).isBefore(currentDate);
+        });
+        
+        const lastMonthOutflow = pastTransactions.filter(t => {
+          const transactionDate = moment(t.date);
+          return transactionDate.isSame(lastMonthDate, 'year') && transactionDate.isSame(lastMonthDate, 'month')
+        }).reduce((acc, cv) => acc + cv.outflow, 0);
+        
+        const pastIncomes = pastTransactions.reduce((acc, cv) => acc + cv.inflow, 0);
+        const pastOutflows = pastTransactions.reduce((acc, cv) => acc + cv.outflow, 0);
+
+        notBudgetLastMonth = pastIncomes - pastMonthsBudgeted;
+        overspentLastMonth =  pastMonthsBudgeted - pastOutflows;
+
         return {
           ...foundBudget,
           income,
           budgeted,
           available,
+          notBudgetLastMonth,
+          overspentLastMonth
         };
       } else {
       }

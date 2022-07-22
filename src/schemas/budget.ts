@@ -2,7 +2,7 @@ import { IAccount } from './account';
 import { ICategory } from './category';
 import { Database } from './database';
 import { ITransaction } from './transaction';
-export interface IBudget extends Database{
+export interface IBudget extends Database {
   month: number;
   year: number;
   rows?: Array<IParentRow>;
@@ -10,9 +10,11 @@ export interface IBudget extends Database{
   budgeted?: number;
   income?: number;
   available?: number;
+  notBudgetLastMonth?: number;
+  overspentLastMonth?: number;
 }
 
-export interface IParentRow extends Database{
+export interface IParentRow extends Database {
   budgetId: string;
   categoryId: string;
   isCollapsed?: boolean;
@@ -20,7 +22,7 @@ export interface IParentRow extends Database{
   children?: Array<IChildRow>;
 }
 
-export interface IChildRow extends Database{
+export interface IChildRow extends Database {
   budgetId: string;
   categoryId: string;
   parentId: string;

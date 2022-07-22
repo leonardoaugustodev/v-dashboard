@@ -27,11 +27,11 @@
 
         <div class="flex self-end">
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(0) }}</div>
+            <div>{{ formatCurrency(budgetStore.currentBudget?.notBudgetLastMonth) }}</div>
             <div class="text-xs text-gray-500">Not budgeted last month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div>{{ formatCurrency(0) }}</div>
+            <div>{{ formatCurrency(budgetStore.currentBudget?.overspentLastMonth) }}</div>
             <div class="text-xs text-gray-500">Overspent last month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
@@ -44,7 +44,8 @@
           </div>
           <div class="flex flex-col items-center mx-2">
             <div>{{ formatCurrency(budgetStore.currentBudget?.available) }}</div>
-            <div class="text-xs text-gray-500">Available to budget | Overbudgeted</div>
+            <div class="text-xs text-gray-500">
+              {{ (budgetStore.currentBudget?.available || 0) >= 0 ? 'Available to budget' : 'Overbudgeted' }}</div>
           </div>
 
           <!-- <div class="mx-5">
@@ -251,6 +252,7 @@ const navigate = (decreaseOrIncrease: number) => {
   const { currentMonth, currentYear } = budgetStore;
   const currentDate = moment([currentYear, currentMonth, 1]);
   const newDate = currentDate.add(decreaseOrIncrease, 'month');
+  console.log(newDate.month(), newDate.year());
   budgetStore.selectDate(newDate.month(), newDate.year());
 }
 
