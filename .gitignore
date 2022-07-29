@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+*.local
+yarn-error.log
+.env
+.vscode
+pnpm-lock.yaml
+firestore-debug.log
