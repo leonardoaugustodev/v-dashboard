@@ -39,7 +39,7 @@
 
           <label class="block my-2">
             <span class="block mb-1 text-sm font-medium text-slate-700">Type</span>
-            <select type="text" v-model="accountToEdit.type"
+            <select v-model="accountToEdit.type"
               class="form-select w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500">
               <option v-for="(type, index) in accountStore.accountTypes" :value="type.value" :key="type.value">{{
                   type.label
@@ -54,7 +54,7 @@
 
           <label class="block my-2">
             <span class="block mb-1 text-sm font-medium text-slate-700">Status</span>
-            <select type="text" v-model="accountToEdit.status"
+            <select v-model="accountToEdit.status"
               class="form-select w-full px-4 py-2 rounded-md appearance-none focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500">
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>

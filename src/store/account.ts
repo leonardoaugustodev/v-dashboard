@@ -5,6 +5,8 @@ import {
   getDocs,
   collection,
   deleteDoc,
+  query,
+  where,
 } from 'firebase/firestore';
 import { db } from '../database/firebase';
 import { defineStore } from 'pinia';
@@ -90,14 +92,20 @@ export const useAccountStore = defineStore('account', {
   },
   actions: {
     async load() {
-      const accountDocs = await getDocs(collection(db, 'accounts'));
+      const userStore = useUserStore();
+      console.log(userStore.user.uid);
+      const accountDocs = await getDocs(
+        query(
+          collection(db, 'accounts'),
+          where('userId', '==', userStore.user.uid)
+        )
+      );
       this.accounts = [];
       accountDocs.forEach((doc) => {
         this.accounts.push(<IAccount>doc.data());
       });
     },
     async save(account: IAccount) {
-
       const userStore = useUserStore();
       if (account._id) {
         const index = this.accounts.findIndex((acc) => acc._id === account._id);

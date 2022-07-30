@@ -6,6 +6,8 @@ import {
   collection,
   deleteDoc,
   writeBatch,
+  query,
+  where,
 } from 'firebase/firestore';
 import { db } from '../database/firebase';
 import { defineStore } from 'pinia';
@@ -52,7 +54,11 @@ export const useTransactionStore = defineStore('transaction', {
   },
   actions: {
     async load() {
-      const transactionDocs = await getDocs(collection(db, 'transactions'));
+      const transactionDocs = await getDocs(
+        query(
+          collection(db, 'transactions'),
+          where('userId', '==', useUserStore().user.userId)
+      ));
       this.transactions = [];
       transactionDocs.forEach((doc) => {
         this.transactions.push(<ITransaction>doc.data());

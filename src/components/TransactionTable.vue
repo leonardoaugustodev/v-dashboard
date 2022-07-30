@@ -177,10 +177,11 @@ import { formatCurrency } from '../utils/currency';
 import TransactionMassEditModal from './TransactionMassEditModal.vue';
 import { getDoc, doc, collection, getDocs, setDoc, where, query } from 'firebase/firestore';
 import { db } from '../database/firebase';
+import { useUserStore } from '../store/user';
 
 
 const transactionStore = useTransactionStore();
-const accountStore = useAccountStore();
+const userStore = useUserStore();
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['update']);
 const { accountId } = defineProps<{ accountId: string }>();
@@ -206,6 +207,7 @@ const getTransactions = async () => {
   const transactionDocs = await getDocs(
     query(
       collection(db, 'transactions'),
+      where('userId', '==', userStore.user.uid),
       where('accountId', '==', accountId),
     )
   );

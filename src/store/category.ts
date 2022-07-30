@@ -10,6 +10,8 @@ import {
   deleteDoc,
   getDocs,
   collection,
+  where,
+  query,
 } from 'firebase/firestore';
 import { useUserStore } from './user';
 
@@ -38,17 +40,23 @@ export const useCategoryStore = defineStore('category', {
   },
   actions: {
     async load() {
-      const categoryDocs = await getDocs(collection(db, 'categories'));
+      const userStore = useUserStore();
+      const categoryDocs = await getDocs(
+        query(
+          collection(db, 'categories'),
+          where('userId', '==', userStore.user.uid)
+      ));
       this.categories = [];
       categoryDocs.forEach((doc) => {
-        this.categories.push(<ICategory>doc.data());
+        const category = doc.data();
+        if (category.userId === userStore.user.uid) {
+          this.categories.push(<ICategory>category);
+        }
       });
     },
     async getOrAddCategory(category: ICategory) {
-
       const userStore = useUserStore();
       try {
-
         if (!category._id) {
           category = {
             ...category,

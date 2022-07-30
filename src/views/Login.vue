@@ -69,6 +69,7 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged  } fro
 import { provider } from '../database/firebase';
 import { IUser } from "../schemas/user";
 import { useUserStore } from '../store/user';
+import { useMainStore } from "../store/main";
 const userStore = useUserStore();
 
 const router = useRouter();
@@ -78,13 +79,11 @@ function login() {
 
   const auth = getAuth();
   signInWithPopup(auth, provider)
-    .then((result) => {
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
+    .then(async (result) => {
+      console.info('Log in...');
       const user = (result.user as IUser);
-
-      userStore.save(user);
-
+      await userStore.save(user);
+      useMainStore().loadStores();
       router.push("/dashboard");
     }).catch((error) => {
       const errorCode = error.code;

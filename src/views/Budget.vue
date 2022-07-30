@@ -43,7 +43,10 @@
             <div class="text-xs text-gray-500">Budgeted this month</div>
           </div>
           <div class="flex flex-col items-center mx-2">
-            <div class="text-bold rounded-full px-2 py-1" :class="summary.available < 0 ? 'text-red-800 bg-red-100' : 'text-green-800 bg-green-100'">{{ formatCurrency(summary.available) }}</div>
+            <div class="text-bold rounded-full px-2 py-1"
+              :class="summary.available < 0 ? 'text-red-800 bg-red-100' : 'text-green-800 bg-green-100'">{{
+                  formatCurrency(summary.available)
+              }}</div>
             <div class="text-xs text-gray-500 ">
               {{ (summary.available || 0) >= 0 ? 'Available to budget' : 'Overbudgeted' }}</div>
           </div>
@@ -128,8 +131,9 @@
               </tr>
 
               <template v-if="u.children?.length && !u.isCollapsed">
-                <BudgetChildRow v-for="(child, cIndex) in u.children" :key="`${child.categoryId}_${child.budgetId}`" :row="child"
-                  @update-category="handleUpdateRowCategory(child)" @row-select="handleSelectRow" @save="navigate(0)" />
+                <BudgetChildRow v-for="(child, cIndex) in u.children" :key="`${child.categoryId}_${child.budgetId}`"
+                  :row="child" @update-category="handleUpdateRowCategory(child)" @row-select="handleSelectRow"
+                  @save="navigate(0)" />
               </template>
             </template>
 
@@ -196,8 +200,8 @@ const summary = computed(() => {
     notBudgetLastMonth = previousBudget.value.income - previousBudget.value.budgeted;
     overspentLastMonth = previousBudget.value.budgeted - previousBudget.value.outflow;
   }
-  
-  available = notBudgetLastMonth + overspentLastMonth +  income - budgeted;
+
+  available = notBudgetLastMonth + overspentLastMonth + income - budgeted;
 
   return {
     income,
@@ -211,9 +215,11 @@ const summary = computed(() => {
 // ---- METHODS ----
 const loadBudget = async (month: number, year: number) => {
   // Load budget and build from database
+  const userId = userStore.user.uid;
+  const budgetId = `budget_${year}_${month}_${userId}`;
 
   // Retrieve budget
-  const budgetDoc = await getDoc(doc(db, 'budgets', `budget_${year}_${month}`));
+  const budgetDoc = await getDoc(doc(db, 'budgets', budgetId));
 
   if (!budgetDoc.exists()) {
     // Create a new budget
@@ -267,7 +273,11 @@ const loadBudget = async (month: number, year: number) => {
 
     // Retrieve budget rows
     const rowDocs = await getDocs(
-      query(collection(db, 'budgetRows'), where("budgetId", "==", budget.value._id))
+      query(
+        collection(db, 'budgetRows'),
+        where('userId', '==', userStore.user.uid),
+        where("budgetId", "==", budget.value._id)
+      )
     );
 
     for (const doc of rowDocs.docs) {
@@ -277,7 +287,7 @@ const loadBudget = async (month: number, year: number) => {
         r.children.forEach(c => {
           if (c.categoryId === row.categoryId) {
             c.budgeted += row.budgeted;
-            if(c.balance == 0) c.balance = row.budgeted;
+            if (c.balance == 0) c.balance = row.budgeted;
           }
         })
       })
@@ -287,6 +297,7 @@ const loadBudget = async (month: number, year: number) => {
     const transactionDocs = await getDocs(
       query(
         collection(db, 'transactions'),
+        where('userId', '==', userStore.user.uid),
         where('month', '==', budget.value?.month),
         where('year', '==', budget.value?.year)
       )
@@ -317,7 +328,10 @@ const loadPreviousBudget = async () => {
 
     // Retrieve month transactions
     const transactionDocs = await getDocs(
-      collection(db, 'transactions')
+      query(
+        collection(db, 'transactions'),
+        where('userId', '==', userStore.user.uid)
+      )
     );
 
     const transactions = transactionDocs.docs
@@ -328,7 +342,10 @@ const loadPreviousBudget = async () => {
     const outflow = transactions.reduce((acc, cv) => acc + (cv.outflow || 0), 0);
 
     const rowDocs = await getDocs(
-      collection(db, 'budgetRows')
+      query(
+        collection(db, 'budgetRows'),
+        where('userId', '==', userStore.user.uid)
+      )
     );
 
     const pastRows = rowDocs.docs
@@ -348,7 +365,8 @@ const createBudget = async (month: number, year: number) => {
   console.info('Creating budget ...');
   try {
 
-    const budgetId = `budget_${year}_${month}`;
+    const userId = userStore.user.uid;
+    const budgetId = `budget_${year}_${month}_${userId}`;
     const newBudget = {
       _id: budgetId,
       userId: userStore.user.uid,

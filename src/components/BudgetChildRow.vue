@@ -75,6 +75,7 @@ const handleSaveBudgeted = async () => {
   const rowDocs = await getDocs(
     query(
       collection(db, 'budgetRows'),
+      where("userId", "==", userStore.user.uid),
       where("budgetId", "==", row.budgetId),
       where("categoryId", "==", row.categoryId),
       limit(1)

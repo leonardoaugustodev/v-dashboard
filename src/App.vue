@@ -11,6 +11,7 @@ import { useRouter } from "vue-router";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 import { useUserStore } from './store/user';
 import { IUser } from "./schemas/user";
+import { useMainStore } from "./store/main";
 const userStore = useUserStore();
 
 const router = useRouter();
@@ -24,15 +25,6 @@ const layout = computed(
 );
 
 onMounted(() => {
-  const auth = getAuth();
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      userStore.save((user as IUser));
-      router.push("/dashboard");
-    }
-    else{
-      router.push("/");
-    }
-  });
+  
 })
 </script>

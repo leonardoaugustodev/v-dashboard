@@ -6,8 +6,11 @@ import { createPinia } from 'pinia';
 import { db } from './database/firebase';
 import DashboardLayout from './components/DashboardLayout.vue';
 import EmptyLayout from './components/EmptyLayout.vue';
-import { useCategoryStore } from './store/category';
+import { useUserStore } from './store/user';
 import { useAccountStore } from './store/account';
+import { useMainStore } from './store/main';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { IUser } from './schemas/user';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -22,12 +25,26 @@ app.config.globalProperties.appName = 'Moneylee';
 app.config.globalProperties.$router = router;
 app.config.globalProperties.$db = db;
 
-// Retrieve categories from database
-const categoryStore = useCategoryStore();
-categoryStore.load();
-
-// Retrieve accounts data from database
-const accountStore = useAccountStore();
-accountStore.load();
-
 app.mount('#app');
+
+// useMainStore().loadStores();
+// // Retrieve categories from database
+// const categoryStore = useCategoryStore();
+// categoryStore.load();
+
+// // Retrieve accounts data from database
+// const accountStore = useAccountStore();
+// accountStore.load();
+
+const auth = getAuth();
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.info('Loading App');
+    await useUserStore().save(user as IUser);
+    // router.push('/dashboard');
+    useMainStore().loadStores();
+  } else {
+    useMainStore().resetStores();
+    router.push('/');
+  }
+});

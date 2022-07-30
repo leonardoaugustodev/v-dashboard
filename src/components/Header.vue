@@ -101,8 +101,10 @@ import { ref } from "vue";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "vue-router";
 import { useSidebar } from "../hooks/useSidebar";
-import { useUserStore } from '../store/user';
+import { useMainStore } from '../store/main';
+import { useUserStore } from "../store/user";
 
+const mainStore = useMainStore();
 const userStore = useUserStore();
 const router = useRouter();
 
@@ -112,6 +114,7 @@ const { isOpen } = useSidebar();
 const logout = () => {
   const auth = getAuth();
   signOut(auth).then(() => {
+    mainStore.resetStores();
     router.push("/");
   }).catch((error) => {
     console.log(error);
