@@ -29,8 +29,14 @@ export const useCategoryStore = defineStore('category', {
     getCategoriesPicklist(state) {
       return state.categories.flatMap((cat) => {
         if (cat.isActive && cat.parentId) {
+          const parentCategory = state.categories.find(
+            (c) => c._id === cat.parentId
+          );
+          const label = parentCategory
+            ? `${parentCategory.name} > ${cat.name}`
+            : cat.name;
           return {
-            label: cat.name,
+            label,
             value: cat._id,
           };
         }
@@ -45,7 +51,8 @@ export const useCategoryStore = defineStore('category', {
         query(
           collection(db, 'categories'),
           where('userId', '==', userStore.user.uid)
-      ));
+        )
+      );
       this.categories = [];
       categoryDocs.forEach((doc) => {
         const category = doc.data();

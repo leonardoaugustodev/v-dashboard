@@ -4,7 +4,7 @@
   <tr @keydown.esc="handleCancelEdit" @keydown.enter.stop="handleSave">
     <td>
       <input type="date" ref="dateInput" v-model="transactionToEdit.date"
-        class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" placeholder="Select date">
+        class="w-full rounded text-sm leading-0 border-0 border-b-2 border-gray-300" placeholder="Select date">
     </td>
     <td>
       <SelectInput :options="accountStore.getAccountsPicklist" :value="transactionToEdit.accountId"
@@ -12,7 +12,7 @@
     </td>
     <td>
       <input type="text" ref="labelInput" v-model="transactionToEdit.memo"
-        class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" />
+        class="w-full rounded text-sm leading-0 border-0 border-b-2 border-gray-300" />
     </td>
     <td>
       <SelectInput ref="categoryInput" :options="categoryStore.getCategoriesPicklist"
@@ -20,11 +20,11 @@
     </td>
     <td>
       <input type="number" v-model="transactionToEdit.inflow"
-        class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
+        class="w-full rounded text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
     <td>
       <input type="number" v-model="transactionToEdit.outflow"
-        class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
+        class="w-full rounded text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
 
     <td class="text-center" v-if="showSaveButton">

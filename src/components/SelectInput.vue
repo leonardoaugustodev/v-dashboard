@@ -2,7 +2,7 @@
 
   <div id="context" tabindex="0"
     class="menu relative text-sm cursor-pointer hover:bg-slate-50 rounded border-b-2 border-gray-300"
-    @click="focusParent($event)" @keyup.esc="closeMenu">
+    @click="focusParent($event)" @keydown.esc="closeMenu" @keydown.down="handleKeyDown" @keydown.up="closeMenu">
     <div id="context-menu" @click="toggleMenu" class="w-full flex justify-between items-center p-2">
       <span>{{ selectedValue.label }}</span>
 
@@ -19,28 +19,28 @@
       </svg>
     </div>
 
-    <div v-if="openMenu" id="context-options" class="options menu w-full fixed bg-white  mt-2 rounded shadow-lg"
+    <ul v-show="openMenu" id="context-options" class="options menu w-full fixed bg-white  mt-2 rounded shadow-lg"
       :class="!selectedValue.value ? 'text-gray-500' : ''">
-      <ul>
-        <li v-for="(option) in options" tabindex=1 :value="option.value" :key="option.value"
-          @click="handleSelect(option)" class="text-sm cursor-pointer p-3 hover:bg-slate-100 rounded">{{
-              option.label
-          }}
-        </li>
-      </ul>
-    </div>
+      <li v-for="(option) in options" ref="itemRefs" tabindex="0" :value="option.value" :key="option.value"
+        @click="handleSelect(option)" @keydown.enter.stop="handleSelect(option)"
+        class="text-sm cursor-pointer px-3 py-1 hover:bg-slate-100 rounded focus:bg-slate-300">{{
+            option.label
+        }}
+      </li>
+    </ul>
   </div>
 
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const { options, value } = defineProps(['options', 'value']);
 const emit = defineEmits(['select']);
 
 const openMenu = ref(false);
-const selectedValue = ref(options.find((o: {value: string, label: string}) => o.value === value) || {
+const itemRefs = ref([]);
+const selectedValue = ref(options.find((o: { value: string, label: string }) => o.value === value) || {
   label: 'Select a value',
   value: null
 });
@@ -69,6 +69,14 @@ const clearSelection = () => {
     value: null
   };
 }
+
+const handleKeyDown = () => {
+  if (!openMenu.value) {
+    toggleMenu();
+  }
+  }
+
+onMounted(() => console.log(itemRefs.value))
 
 defineExpose({
   clearSelection
