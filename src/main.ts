@@ -27,21 +27,12 @@ app.config.globalProperties.$db = db;
 
 app.mount('#app');
 
-// useMainStore().loadStores();
-// // Retrieve categories from database
-// const categoryStore = useCategoryStore();
-// categoryStore.load();
-
-// // Retrieve accounts data from database
-// const accountStore = useAccountStore();
-// accountStore.load();
-
 const auth = getAuth();
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.info('Loading App');
     await useUserStore().save(user as IUser);
-    // router.push('/dashboard');
+    router.push('/dashboard');
     useMainStore().loadStores();
   } else {
     useMainStore().resetStores();

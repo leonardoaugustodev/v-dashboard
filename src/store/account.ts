@@ -93,7 +93,6 @@ export const useAccountStore = defineStore('account', {
   actions: {
     async load() {
       const userStore = useUserStore();
-      console.log(userStore.user.uid);
       const accountDocs = await getDocs(
         query(
           collection(db, 'accounts'),

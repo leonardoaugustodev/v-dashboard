@@ -71,7 +71,6 @@ const readFile = (event: any) => {
         reader.readAsText(file);
       }
 
-      console.log(content.value);
       // } else {
       //   this.content = "check the console for file output";
       //   reader.onload = (res) => {
