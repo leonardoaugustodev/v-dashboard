@@ -52,6 +52,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { parse as parseOFX } from 'ofx-js';
+import moment from 'moment';
+
 const emit = defineEmits(['close-modal'])
 const { accountId } = defineProps<{
   accountId: string
@@ -61,42 +64,81 @@ const content = ref()
 const readFile = (event: any) => {
   const file = event.target.files[0];
   const reader = new FileReader();
+  if (file) {
+    if (file.name.includes(".csv")) {
+      reader.onload = (res) => {
+        content.value = res?.target?.result;
+      };
+      reader.onerror = (err) => console.log(err);
+      reader.readAsText(file);
+    }
 
-  if(file){
-      if (file.name.includes(".csv")) {
-        reader.onload = (res) => {
-          content.value = res?.target?.result;
-        };
-        reader.onerror = (err) => console.log(err);
-        reader.readAsText(file);
-      }
-
-      // } else {
-      //   this.content = "check the console for file output";
-      //   reader.onload = (res) => {
-      //     console.log(res.target.result);
-      //   };
-      //   reader.onerror = (err) => console.log(err);
-      //   reader.readAsText(this.file);
-      // }
+    else {
+      content.value = "check the console for file output";
+      reader.onload = (res) => {
+        // console.log(res.target?.result);
+        parseOfx(res.target?.result);
+      };
+      reader.onerror = (err) => console.log(err);
+      reader.readAsText(file);
+    }
+    // })
   }
-  // const lines = input.split('\n') // 1️⃣
-  // const header = lines[0].split(',') // 2️⃣
-  // const output = lines.slice(1).map(line => {
-  //   const fields = line.split(',') // 3️⃣
-  //   return Object.fromEntries(header.map((h, i) => [h, fields[i]])) // 4️⃣
-  // })
 }
 const handleImport = () => {
-  
-
-  
 }
 
 const closeModal = () => {
   emit('close-modal');
 }
 
+const parseOfx = (data: any) => {
+
+  parseOFX(data).then((ofxData: any) => {
+    const statementResponse = ofxData.OFX.BANKMSGSRSV1.STMTTRNRS.STMTRS;
+    const accountId = statementResponse.BANKACCTFROM.ACCTID;
+    const transactionStatement = statementResponse.BANKTRANLIST.STMTTRN;
+    console.log(transactionStatement);
+    const transactions = transactionStatement.map(t => {
+
+      const momentDate = moment([
+        `${t.DTPOSTED}`.substring(0, 4),
+        `${t.DTPOSTED}`.substring(4, 6),
+        `${t.DTPOSTED}`.substring(6, 8)]
+      );
+      const amount = Number(t.TRNAMT);
+      const inflow = amount > 0 ? amount : 0;
+      const outflow = amount < 0 ? amount : 0;
+
+
+      return {
+        date: momentDate.format('YYYY-MM-DD'),
+        day: momentDate.date(),
+        month: momentDate.month(),
+        year: momentDate.year(),
+        memo: t.MEMO,
+        accountId,
+        categoryId: '',
+        outflow,
+        inflow,
+        cleared: false
+      }
+    });
+    console.log(transactions);
+    // do something...
+  });
+}
+
+const xml2json = (xml: any) => {
+  const json = {};
+  for (const res of xml.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\>/gm)) {
+    const key = res[1] || res[3];
+    const value = res[2] && xml2json(res[2]);
+    json[key] = ((value && Object.keys(value).length) ? value : res[2]) || null;
+
+  }
+  return json;
+}
 
 </script>
 
