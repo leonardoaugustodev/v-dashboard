@@ -1,9 +1,9 @@
 <template>
 
   <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
-    <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
+    <div @click="closeModal" class="absolute w-auto h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
-    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-md">
+    <div class="z-50 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container">
       <div
         class="absolute top-0 right-0 z-50 flex flex-col items-center mt-4 mr-4 text-sm text-white cursor-pointer modal-close">
         <svg class="text-white fill-current" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -36,11 +36,18 @@
             class="block w-full text-sm text-gray-900 bg-gray-50 border border-gray-300 cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
             id="file_input" type="file">
 
+          <div v-if="showNewTransactions" class="flex flex-col items-center my-2">
+            <TransactionNew v-for="transaction in transactions" :key="transaction._id" :transaction="transaction"  :accountId="accountId" :hideSaveButton="true"/>
+          </div>
         </div>
 
         <!--Footer-->
         <div class="flex justify-end pt-2">
-          <button @click="handleImport"
+          <button @click="handleCancel"
+            class="mx-2 px-4 py-2 text-sm font-medium tracking-wide text-red-500 rounded-md hover:text-red-700 focus:outline-none">
+            Cancel
+          </button>
+          <button v-if="showImportButton" @click="handleImport"
             class="px-4 py-2 text-sm font-medium tracking-wide text-white bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none">
             Import
           </button>
@@ -54,13 +61,22 @@
 import { ref } from 'vue';
 import { parse as parseOFX } from 'ofx-js';
 import moment from 'moment';
+import TransactionNew from './TransactionNew.vue';
+import { generateId } from '../utils/hash';
+import { ITransaction } from '../schemas/transaction';
+import { useTransactionStore } from '../store/transaction';
+import { useUserStore } from '../store/user';
 
-const emit = defineEmits(['close-modal'])
+const emit = defineEmits(['close'])
 const { accountId } = defineProps<{
   accountId: string
 }>()
 const file = ref();
 const content = ref()
+const showNewTransactions = ref(false);
+const showImportButton = ref(false);
+const transactions = ref<Array<ITransaction>>([]);
+
 const readFile = (event: any) => {
   const file = event.target.files[0];
   const reader = new FileReader();
@@ -82,36 +98,41 @@ const readFile = (event: any) => {
       reader.onerror = (err) => console.log(err);
       reader.readAsText(file);
     }
-    // })
+    
   }
 }
-const handleImport = () => {
+const handleImport = async () => {
+  await useTransactionStore().bulkInsert(transactions.value);
+  closeModal();
 }
 
 const closeModal = () => {
-  emit('close-modal');
+  emit('close');
+}
+
+const handleCancel = () => {
+  closeModal();
 }
 
 const parseOfx = (data: any) => {
 
   parseOFX(data).then((ofxData: any) => {
     const statementResponse = ofxData.OFX.BANKMSGSRSV1.STMTTRNRS.STMTRS;
-    const accountId = statementResponse.BANKACCTFROM.ACCTID;
+    // const accountId = statementResponse.BANKACCTFROM.ACCTID;
     const transactionStatement = statementResponse.BANKTRANLIST.STMTTRN;
-    console.log(transactionStatement);
-    const transactions = transactionStatement.map(t => {
+    transactions.value = transactionStatement.map((t: any) => {
 
       const momentDate = moment([
         `${t.DTPOSTED}`.substring(0, 4),
-        `${t.DTPOSTED}`.substring(4, 6),
+        Number(`${t.DTPOSTED}`.substring(4, 6)) - 1,
         `${t.DTPOSTED}`.substring(6, 8)]
       );
       const amount = Number(t.TRNAMT);
       const inflow = amount > 0 ? amount : 0;
       const outflow = amount < 0 ? amount : 0;
 
-
       return {
+        _id: generateId('transaction'),
         date: momentDate.format('YYYY-MM-DD'),
         day: momentDate.date(),
         month: momentDate.month(),
@@ -121,24 +142,16 @@ const parseOfx = (data: any) => {
         categoryId: '',
         outflow,
         inflow,
-        cleared: false
+        cleared: false,
+        userId: useUserStore().user.uid
       }
     });
-    console.log(transactions);
+    showNewTransactions.value = true;
+    showImportButton.value = true;
     // do something...
   });
 }
 
-const xml2json = (xml: any) => {
-  const json = {};
-  for (const res of xml.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\>/gm)) {
-    const key = res[1] || res[3];
-    const value = res[2] && xml2json(res[2]);
-    json[key] = ((value && Object.keys(value).length) ? value : res[2]) || null;
-
-  }
-  return json;
-}
 
 </script>
 

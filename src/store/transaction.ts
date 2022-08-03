@@ -102,6 +102,20 @@ export const useTransactionStore = defineStore('transaction', {
         this.transactions.push(newTransaction);
       }
     },
+    async bulkInsert(transactions: ITransaction[]) {
+      try {
+        const batch = writeBatch(db);
+
+        transactions.forEach((t) => {
+          const ref = doc(db, 'transactions', t._id);
+          batch.set(ref, { ...t });
+        });
+
+        await batch.commit();
+      } catch (error) {
+        console.log(error);
+      }
+    },
     async bulkSave(transactions: ITransaction[]) {
       try {
         const batch = writeBatch(db);

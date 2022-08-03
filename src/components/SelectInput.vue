@@ -1,9 +1,22 @@
 <template>
 
   <div id="context" tabindex="0"
-    class="menu relative text-sm cursor-pointer hover:bg-slate-50 rounded border-b-2 border-gray-300"
+    class="menu relative text-sm cursor-pointer  hover:bg-slate-50 border-b-2 border-gray-300"
     @click="focusParent($event)" @keydown.esc="closeMenu" @keydown.down="handleKeyDown" @keydown.up="closeMenu">
-    <div id="context-menu" @click="toggleMenu" class="w-full flex justify-between items-center p-2">
+
+    <div v-show="openMenu" class=" bg-teal-300">
+      <ul id="context-options" class="options  menu w-full fixed mt-2 shadow-lg"
+        :class="!selectedValue.value ? 'text-gray-500' : ''">
+        <li v-for="(option) in options" ref="itemRefs" tabindex="0" :value="option.value" :key="option.value"
+          @click="handleSelect(option)" @keydown.enter.stop="handleSelect(option)"
+          class="text-sm z-99 cursor-pointer px-3 py-1 bg-slate-100 hover:bg-slate-200  focus:bg-slate-300">{{
+              option.label
+          }}
+        </li>
+      </ul>
+    </div>
+
+    <div id="context-menu" @click="toggleMenu" class="w-full  flex justify-between items-center p-2">
       <span>{{ selectedValue.label }}</span>
 
       <svg v-if="!openMenu" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="#aaa">
@@ -19,15 +32,7 @@
       </svg>
     </div>
 
-    <ul v-show="openMenu" id="context-options" class="options menu w-full fixed bg-white  mt-2 rounded shadow-lg"
-      :class="!selectedValue.value ? 'text-gray-500' : ''">
-      <li v-for="(option) in options" ref="itemRefs" tabindex="0" :value="option.value" :key="option.value"
-        @click="handleSelect(option)" @keydown.enter.stop="handleSelect(option)"
-        class="text-sm cursor-pointer px-3 py-1 hover:bg-slate-100 rounded focus:bg-slate-300">{{
-            option.label
-        }}
-      </li>
-    </ul>
+
   </div>
 
 </template>
@@ -74,7 +79,7 @@ const handleKeyDown = () => {
   if (!openMenu.value) {
     toggleMenu();
   }
-  }
+}
 
 onMounted(() => console.log(itemRefs.value))
 
@@ -87,7 +92,6 @@ defineExpose({
 
 <style>
 .menu {
-  z-index: 50;
   max-width: 200px;
   min-width: 150px;
 }

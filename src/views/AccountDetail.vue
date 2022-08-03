@@ -1,6 +1,6 @@
 <template>
 
-  <ImportModal v-if="showImportModal" :account-id="accountId"/>
+  <ImportModal v-if="showImportModal" :account-id="accountId" @close="showImportModal = false"/>
 
   <div class="flex justify-between mb-2">
 

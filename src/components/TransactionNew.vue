@@ -4,7 +4,7 @@
   <tr @keydown.esc="handleCancelEdit" @keydown.enter.stop="handleSave">
     <td>
       <input type="date" ref="dateInput" v-model="transactionToEdit.date"
-        class="w-full rounded text-sm leading-0 border-0 border-b-2 border-gray-300" placeholder="Select date">
+        class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" placeholder="Select date">
     </td>
     <td>
       <SelectInput :options="accountStore.getAccountsPicklist" :value="transactionToEdit.accountId"
@@ -12,7 +12,7 @@
     </td>
     <td>
       <input type="text" ref="labelInput" v-model="transactionToEdit.memo"
-        class="w-full rounded text-sm leading-0 border-0 border-b-2 border-gray-300" />
+        class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" />
     </td>
     <td>
       <SelectInput ref="categoryInput" :options="categoryStore.getCategoriesPicklist"
@@ -20,21 +20,21 @@
     </td>
     <td>
       <input type="number" v-model="transactionToEdit.inflow"
-        class="w-full rounded text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
+        class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
     <td>
       <input type="number" v-model="transactionToEdit.outflow"
-        class="w-full rounded text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
+        class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
 
     <td class="text-center" v-if="showSaveButton">
-      <button @click="handleCancelEdit" class="px-2 py-1 text-xs rounded text-red-400 hover:bg-gray-50"><svg
+      <button @click="handleCancelEdit" class="px-2 py-1 text-xs text-red-400 hover:bg-gray-50"><svg
           xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
           stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg></button>
-      <button @click="handleSave" class="px-2 py-1 text-xs rounded text-teal-400 hover:bg-gray-50"><svg
+      <button @click="handleSave" class="px-2 py-1 text-xs text-teal-400 hover:bg-gray-50"><svg
           xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
           stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
