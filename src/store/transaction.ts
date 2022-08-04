@@ -58,7 +58,8 @@ export const useTransactionStore = defineStore('transaction', {
         query(
           collection(db, 'transactions'),
           where('userId', '==', useUserStore().user.userId)
-      ));
+        )
+      );
       this.transactions = [];
       transactionDocs.forEach((doc) => {
         this.transactions.push(<ITransaction>doc.data());
@@ -106,12 +107,13 @@ export const useTransactionStore = defineStore('transaction', {
       try {
         const batch = writeBatch(db);
 
-        transactions.forEach((t) => {
+        for (const t of transactions) {
           const ref = doc(db, 'transactions', t._id);
-          batch.set(ref, { ...t });
-        });
+          batch.set(ref, t);
+        }
 
-        await batch.commit();
+        const result = await batch.commit();
+        console.log(result);
       } catch (error) {
         console.log(error);
       }
@@ -129,17 +131,11 @@ export const useTransactionStore = defineStore('transaction', {
       } catch (error) {}
     },
     async clear(transactionId: string, clearOrUnclear: boolean) {
-      const transaction = this.transactions.find(
-        (t) => t._id === transactionId
-      );
-      if (transaction) {
+      if (transactionId) {
         try {
-          transaction.cleared = clearOrUnclear;
-
-          await updateDoc(
-            doc(db, 'transactions', transaction._id),
-            transaction
-          );
+          await updateDoc(doc(db, 'transactions', transactionId), {
+            cleared: clearOrUnclear,
+          });
         } catch (e) {
           console.error('Error adding document: ', e);
         }

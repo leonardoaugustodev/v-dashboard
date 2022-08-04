@@ -30,9 +30,7 @@ app.mount('#app');
 const auth = getAuth();
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    console.info('Loading App');
     await useUserStore().save(user as IUser);
-    router.push('/dashboard');
     useMainStore().loadStores();
   } else {
     useMainStore().resetStores();

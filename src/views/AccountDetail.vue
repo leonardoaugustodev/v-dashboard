@@ -1,6 +1,6 @@
 <template>
 
-  <ImportModal v-if="showImportModal" :account-id="accountId" @close="showImportModal = false"/>
+  <ImportModal v-if="showImportModal" :account-id="accountId" @close="showImportModal = false" @import="reloadTransactions"/>
 
   <div class="flex justify-between mb-2">
 
@@ -50,7 +50,7 @@
     </div>
   </div>
 
-  <TransactionTable :account-id="accountId" @update="reloadSummaryValues" />
+  <TransactionTable ref="transactionTable" :account-id="accountId" @update="reloadSummaryValues" />
 
 </template>
 
@@ -71,13 +71,18 @@ const accountStore = useAccountStore();
 const summaryValues = ref(accountStore.getSummaryValues(accountId));
 const account = ref<IAccount | any>(accountStore.getAccount(accountId));
 const showImportModal = ref(false);
-
+const transactionTable = ref();
 const reloadSummaryValues = () => {
   summaryValues.value = accountStore.getSummaryValues(accountId);
 }
 
 const openImportModal = () => {
   showImportModal.value = true;
+}
+
+const reloadTransactions = () => {
+  showImportModal.value = false;
+  transactionTable.value.reload();
 }
 
 </script>

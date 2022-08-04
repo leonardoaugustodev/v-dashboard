@@ -43,14 +43,25 @@
 
           <tbody class="bg-white">
 
-            <tr v-if="!isEditing" class="text-center bg-gray-100 text-gray-400 text-sm">
+            <tr class="text-center bg-gray-100 text-gray-400 text-sm">
 
-              <td v-if="!rowsSelected.length" @click="handleEdit" class="py-2 hover:text-bold" colspan="8"> +
-                Transaction</td>
-
-              <td v-else class="" colspan="8">
+              <td class="" colspan="8">
                 <div class="w-full sm:w-1/1 xl:w-3/3 px-1 flex justify-between items-center">
-                  <div class="flex">
+                  <div class="flex items-center gap-1">
+
+                    <input class="mx-1 border-gray-300 rounded" type="checkbox" @change="handleSelectAll($event)"
+                      v-model="selectAllInput" />
+
+                    <button @click="handleEdit" :disabled="!!rowsSelected.length"
+                      class="text-green-600 hover:text-green-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                          d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                          clip-rule="evenodd" />
+                      </svg>
+                      <span class="ml-1">Transaction</span>
+                    </button>
+
                     <button @click="handleMassEdit"
                       class="text-blue-600 hover:text-blue-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -62,7 +73,7 @@
                       <span class="ml-1">Edit</span>
                     </button>
 
-                    <button @click="handleMassClear"
+                    <button @click="handleMassClearUnclear(true)"
                       class="text-blue-600 hover:text-blue-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
@@ -72,7 +83,7 @@
                       <span class="ml-1">Clear</span>
                     </button>
 
-                    <button @click="handleMassUnclear"
+                    <button @click="handleMassClearUnclear(false)"
                       class="text-purple-600 hover:text-purple-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
@@ -81,6 +92,8 @@
                       </svg>
                       <span class="ml-1">Unclear</span>
                     </button>
+
+                    <InputSelect />
                   </div>
 
                   <button @click="handleDelete"
@@ -92,25 +105,25 @@
                     </svg>
                     <span class="ml-1">Delete</span>
                   </button>
-
                 </div>
               </td>
             </tr>
-            <TransactionNew v-else @keydown.esc="cancelEdit" :account-id="accountId" @cancel="cancelEdit"
+            <TransactionNew v-if="isEditing" @keydown.esc="cancelEdit" :account-id="accountId" @cancel="cancelEdit"
               @add-transaction="handleTransactionAdded" :hide-save-button="false" />
 
-            <tr v-for="(u, index) in transactions" :key="index">
+            <tr v-for="(u, index) in transactions" :key="index" class="py-1">
 
-              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
+              <td class=" border-b border-gray-200 whitespace-nowrap">
                 <div class="flex items-center">
-                  <input class="mr-4 ml-2 border-gray-300 rounded" type="checkbox" @change="handleSelect(u, $event)" />
+                  <input v-model="u.selected" class="mr-4 ml-2 border-gray-300 rounded" type="checkbox"
+                    @change="handleSelect(u, $event)" />
                   <div class="text-sm font-medium leading-5 text-gray-900">
                     {{ moment(u.date).format('DD/MM/YYYY') }}
                   </div>
                 </div>
               </td>
 
-              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
+              <td class=" border-b border-gray-200 whitespace-nowrap">
                 <span
                   class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
                       u.account?.name
@@ -118,13 +131,13 @@
 
               </td>
 
-              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
+              <td class=" border-b border-gray-200 whitespace-nowrap">
                 <div class="text-sm leading-5 text-gray-900">
                   {{ u.memo }}
                 </div>
               </td>
 
-              <td class="py-2 border-b border-gray-200 whitespace-nowrap">
+              <td class=" border-b border-gray-200 whitespace-nowrap">
                 <span
                   class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
                       u.category?.name
@@ -132,15 +145,15 @@
               </td>
 
 
-              <td class="py-2 text-sm leading-5 text-right text-green-700 border-b border-gray-200 whitespace-nowrap">
+              <td class=" text-sm leading-5 text-right text-green-700 border-b border-gray-200 whitespace-nowrap">
                 {{ formatCurrency(u.inflow) }}
               </td>
 
-              <td class="py-2 text-sm leading-5 text-right text-red-500 border-b border-gray-200 whitespace-nowrap">
+              <td class=" text-sm leading-5 text-right text-red-500 border-b border-gray-200 whitespace-nowrap">
                 {{ formatCurrency(u.outflow) }}
               </td>
 
-              <td class="py-2 text-sm leading-5 text-center border-b border-gray-200 whitespace-nowrap">
+              <td class=" text-sm leading-5 text-center border-b border-gray-200 whitespace-nowrap">
                 <button @click="handleClear(u)">
                   <svg v-if="u.cleared" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20"
                     fill="#03a1fc">
@@ -175,9 +188,12 @@ import { useAccountStore } from '../store/account';
 import { useCategoryStore } from '../store/category';
 import { formatCurrency } from '../utils/currency';
 import TransactionMassEditModal from './TransactionMassEditModal.vue';
-import { getDoc, doc, collection, getDocs, setDoc, where, query } from 'firebase/firestore';
+import { getDoc, doc, collection, getDocs, setDoc, where, query, writeBatch } from 'firebase/firestore';
 import { db } from '../database/firebase';
 import { useUserStore } from '../store/user';
+import { getAuth } from 'firebase/auth';
+import { clear } from 'console';
+import InputSelect from './InputSelect.vue';
 
 
 const transactionStore = useTransactionStore();
@@ -201,6 +217,7 @@ const transactionToEdit = ref<ITransaction>();
 const isEditing = ref(false);
 const rowsSelected = ref<Array<ITransaction>>([]);
 const showMassEditModal = ref(false);
+const selectAllInput = ref(false);
 
 const getTransactions = async () => {
 
@@ -213,6 +230,23 @@ const getTransactions = async () => {
   );
 
   transactions.value = [...transactionDocs.docs.map(doc => (doc.data() as ITransaction))];
+
+  transactions.value = transactions.value.map(t => {
+    let category;
+    let account;
+    if (t.categoryId) {
+      category = categoryStore.getCategory(t.categoryId)
+    }
+    if (t.accountId) {
+      account = useAccountStore().getAccount(t.accountId)
+    }
+
+    return {
+      ...t,
+      category,
+      account
+    };
+  });
 
   // console.log(transactionStore.transactions);
   // console.log('getting transactions');
@@ -229,13 +263,16 @@ const handleEdit = () => {
   isEditing.value = true;
 }
 
-const handleClear = (transaction: ITransaction) => {
-  transactionStore.clear(transaction._id, !transaction.cleared);
+const handleClear = async (transaction: ITransaction) => {
+  await transactionStore.clear(transaction._id, !transaction.cleared);
+  const t = transactions.value.find(t => t._id == transaction._id);
+  if (t) t.cleared = !transaction.cleared;
   emit('update');
 }
 
 const handleSelect = (row: ITransaction, event: any) => {
   const checked = event.target.checked;
+  row.selected = checked;
 
   if (checked) {
     cancelEdit();
@@ -246,6 +283,22 @@ const handleSelect = (row: ITransaction, event: any) => {
       rowsSelected.value.findIndex(r => r._id === row._id), 1
     )
   }
+}
+
+const handleSelectAll = (event: any) => {
+
+  const checked = event.target.checked;
+
+  if (checked) {
+    for (const transaction of transactions.value) {
+      transaction.selected = true;
+      rowsSelected.value.push(transaction);
+    }
+  }
+  else {
+    clearSelection();
+  }
+
 }
 
 const handleDelete = () => {
@@ -259,19 +312,21 @@ const handleDelete = () => {
   getTransactions();
 }
 
-const handleMassClear = () => {
-  rowsSelected.value.forEach(row => {
-    transactionStore.clear(row._id, true)
-  });
+const handleMassClearUnclear = async (clearOrUnclear: boolean) => {
 
-  emit('update');
-  clearSelection();
-}
+  try {
+    const batch = writeBatch(db);
+    for (const transaction of rowsSelected.value) {
 
-const handleMassUnclear = () => {
-  rowsSelected.value.forEach(row => {
-    transactionStore.clear(row._id, false)
-  });
+      if (transaction.cleared === clearOrUnclear) continue;
+
+      transaction.cleared = clearOrUnclear;
+      const ref = doc(db, 'transactions', transaction._id);
+      batch.update(ref, { cleared: clearOrUnclear });
+    }
+
+    await batch.commit();
+  } catch (error) { }
 
   emit('update');
   clearSelection();
@@ -282,16 +337,27 @@ const handleMassEdit = () => {
 }
 
 const clearSelection = () => {
+  rowsSelected.value.forEach((row) => { row.selected = false; })
+  selectAllInput.value = false;
   rowsSelected.value = [];
 
-  document.querySelectorAll('input[type=checkbox]')?.forEach((el: any) => {
-    el.checked = false
-  });
+  // document.querySelectorAll('input[type=checkbox]')?.forEach((el: any) => {
+  //   el.checked = false
+  // });
 }
 
 const cancelEdit = () => {
   isEditing.value = false;
 }
+
+const reload = () => {
+  getTransactions();
+}
+
+defineExpose({
+  reload
+});
+
 
 onMounted(() => {
   getTransactions();

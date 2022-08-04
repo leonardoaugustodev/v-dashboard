@@ -1,9 +1,9 @@
 <template>
 
-  <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
-    <div @click="closeModal" class="absolute w-auto h-full bg-gray-900 opacity-50 modal-overlay"></div>
+  <div :class="`modal z-50 fixed w-full  h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
+    <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
-    <div class="z-50 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container">
+    <div class="z-50 mx-auto overflow-y-auto max-height bg-white rounded shadow-lg modal-container">
       <div
         class="absolute top-0 right-0 z-50 flex flex-col items-center mt-4 mr-4 text-sm text-white cursor-pointer modal-close">
         <svg class="text-white fill-current" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -14,7 +14,6 @@
         <span class="text-sm">(Esc)</span>
       </div>
 
-      <!-- Add margin if you want to see some of the overlay behind the modal-->
       <div class="px-6 py-4 text-left modal-content">
         <!--Title-->
         <div class="flex items-center justify-between pb-3">
@@ -29,7 +28,7 @@
         </div>
 
         <!--Body-->
-        <div>
+        <div class=" overflow-y-scroll max-height">
           <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300" for="file_input">Select your
             OFX or CSV file</label>
           <input @change="readFile($event)"
@@ -37,7 +36,8 @@
             id="file_input" type="file">
 
           <div v-if="showNewTransactions" class="flex flex-col items-center my-2">
-            <TransactionNew v-for="transaction in transactions" :key="transaction._id" :transaction="transaction"  :accountId="accountId" :hideSaveButton="true"/>
+            <TransactionNew v-for="transaction in transactions" :key="transaction._id" :transaction="transaction"
+              :accountId="accountId" :hideSaveButton="true" />
           </div>
         </div>
 
@@ -67,7 +67,7 @@ import { ITransaction } from '../schemas/transaction';
 import { useTransactionStore } from '../store/transaction';
 import { useUserStore } from '../store/user';
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'import'])
 const { accountId } = defineProps<{
   accountId: string
 }>()
@@ -98,12 +98,14 @@ const readFile = (event: any) => {
       reader.onerror = (err) => console.log(err);
       reader.readAsText(file);
     }
-    
+
   }
 }
 const handleImport = async () => {
-  await useTransactionStore().bulkInsert(transactions.value);
-  closeModal();
+  for (const t of transactions.value) {
+    useTransactionStore().save(t)
+  }
+  emit('import');
 }
 
 const closeModal = () => {
@@ -132,23 +134,17 @@ const parseOfx = (data: any) => {
       const outflow = amount < 0 ? amount : 0;
 
       return {
-        _id: generateId('transaction'),
         date: momentDate.format('YYYY-MM-DD'),
-        day: momentDate.date(),
-        month: momentDate.month(),
-        year: momentDate.year(),
         memo: t.MEMO,
         accountId,
         categoryId: '',
         outflow,
         inflow,
-        cleared: false,
-        userId: useUserStore().user.uid
+        cleared: false
       }
     });
     showNewTransactions.value = true;
     showImportButton.value = true;
-    // do something...
   });
 }
 
@@ -158,5 +154,8 @@ const parseOfx = (data: any) => {
 <style>
 .modal {
   transition: opacity 0.25s ease;
+}
+.max-height {
+  max-height: 90%;
 }
 </style>
