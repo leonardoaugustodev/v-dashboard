@@ -6,3 +6,4 @@ yarn-error.log
 .vscode
 pnpm-lock.yaml
 firestore-debug.log
+firebase-debug.log
