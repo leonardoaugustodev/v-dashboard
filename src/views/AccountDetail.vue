@@ -1,6 +1,7 @@
 <template>
 
-  <ImportModal v-if="showImportModal" :account-id="accountId" @close="showImportModal = false" @import="reloadTransactions"/>
+  <ImportModal v-if="showImportModal" :account-id="accountId" @close="showImportModal = false"
+    @import="reloadTransactions" />
 
   <div class="flex justify-between mb-2">
 
@@ -50,30 +51,57 @@
     </div>
   </div>
 
-  <TransactionTable ref="transactionTable" :account-id="accountId" @update="reloadSummaryValues" />
+  <TransactionTable ref="transactionTable" @update="reloadSummaryValues" />
 
 </template>
 
 
 <script setup lang="ts">
-import { watch, reactive, ref } from 'vue';
-import { useRoute } from "vue-router";
+import { watch, reactive, ref, onMounted } from 'vue';
+import { onBeforeRouteUpdate, useRoute } from "vue-router";
 import { IAccount } from '../schemas/account';
 import { useAccountStore } from '../store/account';
 import TransactionTable from '../components/TransactionTable.vue';
 import { formatCurrency } from '../utils/currency';
 import { useTransactionStore } from '../store/transaction';
 import ImportModal from '../components/ImportModal.vue';
+import { collection, doc, getDoc, getDocs, limit, query, where } from 'firebase/firestore';
+import { db } from '../database/firebase';
+import { useUserStore } from '../store/user';
 
 const route = useRoute();
-const accountId = <string>route.params.id;
 const accountStore = useAccountStore();
-const summaryValues = ref(accountStore.getSummaryValues(accountId));
-const account = ref<IAccount | any>(accountStore.getAccount(accountId));
+const summaryValues = ref();
+const account = ref<IAccount>();
 const showImportModal = ref(false);
 const transactionTable = ref();
+const accountId = ref<string>();
+
+watch(
+  () =>
+    route.params.id,
+
+  async (newId, oldId) => {
+    if (newId) {
+      accountId.value = (newId as string);
+      await getAccount();
+    }
+  },
+  { deep: true }
+)
+
+const getAccount = async () => {
+  console.log('getAccount', accountId.value);
+  if (accountId.value) {
+    const docSnap = await getDoc(doc(db, 'accounts', accountId.value));
+    if (docSnap.exists()) {
+      account.value = docSnap.data() as IAccount;
+    }
+  } //account.value = accountStore.getAccount(accountId.value);
+}
+
 const reloadSummaryValues = () => {
-  summaryValues.value = accountStore.getSummaryValues(accountId);
+  if (accountId.value) summaryValues.value = accountStore.getSummaryValues(accountId.value);
 }
 
 const openImportModal = () => {
@@ -84,5 +112,10 @@ const reloadTransactions = () => {
   showImportModal.value = false;
   transactionTable.value.reload();
 }
+
+onMounted(async () => {
+  accountId.value = (route.params.id as string);
+  await getAccount();
+})
 
 </script>

@@ -19,11 +19,11 @@
         :value="transactionToEdit.categoryId" @select="handleSelectCategory" />
     </td>
     <td>
-      <input type="number" v-model="transactionToEdit.inflow"
+      <input type="number" v-model="transactionToEdit.inflow" @change="notifyAmountChange"
         class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
     <td>
-      <input type="number" v-model="transactionToEdit.outflow"
+      <input type="number" v-model="transactionToEdit.outflow" @change="notifyAmountChange"
         class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
 
@@ -52,9 +52,11 @@ import { useAccountStore } from '../store/account';
 import { formatCurrency } from '../utils/currency';
 import { ITransaction } from '../schemas/transaction'
 import SelectInput from './SelectInput.vue'
+import { useRoute } from 'vue-router';
+import { upsert } from '../use/useTransaction';
 
 const { transaction, accountId, hideSaveButton } = defineProps(['transaction', 'accountId', 'hideSaveButton']);
-const emit = defineEmits(['add-transaction', 'cancel']);
+const emit = defineEmits(['add-transaction', 'cancel', 'amount-change']);
 
 const dateInput = ref();
 const categoryInput = ref();
@@ -63,13 +65,13 @@ const categoryStore = useCategoryStore();
 const accountStore = useAccountStore();
 const isEditing = ref(false);
 const showSaveButton = ref(!hideSaveButton);
-
+const route = useRoute();
 const defaultTransaction = {
   date: moment().format('YYYY-MM-DD'),
   day: new Date().getDay(),
   month: new Date().getMonth(),
   year: new Date().getFullYear(),
-  accountId,
+  accountId: route.params.id,
   categoryId: '',
   inflow: 0,
   outflow: 0,
@@ -78,12 +80,20 @@ const defaultTransaction = {
 
 const transactionToEdit = ref<ITransaction>(transaction || { ...defaultTransaction });
 
+const initialAmounts = {
+  _id: transactionToEdit.value._id,
+  amount: (transactionToEdit.value.inflow - transactionToEdit.value.outflow) || 0,
+}
+
 const handleEdit = () => {
   isEditing.value = true;
 }
 
 const handleSave = async () => {
-  await transactionStore.save(transactionToEdit.value);
+
+  await upsert([{
+    ...transactionToEdit.value
+  }], [initialAmounts]);
   emit('add-transaction');
 
   resetFields();
@@ -114,6 +124,13 @@ const focusDate = () => {
   if (dateInput && dateInput.value) {
     dateInput.value.focus();
   }
+}
+
+const notifyAmountChange = () => {
+  emit('amount-change', (
+    transactionToEdit.value.inflow -
+    initialAmounts.inflow -
+    (transactionToEdit.value.outflow - initialAmounts.outflow)))
 }
 
 onMounted(() => {

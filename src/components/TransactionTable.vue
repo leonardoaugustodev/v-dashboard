@@ -93,7 +93,7 @@
                       <span class="ml-1">Unclear</span>
                     </button>
 
-                    <InputSelect />
+                    <!-- <InputSelect /> -->
                   </div>
 
                   <button @click="handleDelete"
@@ -179,7 +179,7 @@
 
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref, watch, watchEffect } from 'vue';
 import moment from 'moment';
 import TransactionNew from './TransactionNew.vue';
 import { ITransaction } from '../schemas/transaction';
@@ -191,23 +191,24 @@ import TransactionMassEditModal from './TransactionMassEditModal.vue';
 import { getDoc, doc, collection, getDocs, setDoc, where, query, writeBatch } from 'firebase/firestore';
 import { db } from '../database/firebase';
 import { useUserStore } from '../store/user';
-import { getAuth } from 'firebase/auth';
-import { clear } from 'console';
 import InputSelect from './InputSelect.vue';
+import { onBeforeRouteUpdate, useRoute } from 'vue-router';
+import { deleteRecords } from '../use/useTransaction';
 
 
 const transactionStore = useTransactionStore();
 const userStore = useUserStore();
+const route = useRoute()
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['update']);
-const { accountId } = defineProps<{ accountId: string }>();
-const transactions = ref<Array<ITransaction>>(transactionStore.getTransactionsByAccountId(accountId));
+const accountId = ref<string>();
+const transactions = ref<Array<ITransaction>>();
 const defaultTransaction = {
   date: moment().format('YYYY-MM-DD'),
   day: moment().date(),
   month: moment().month(),
   year: moment().year(),
-  accountId: accountId,
+  accountId: accountId.value,
   inflow: 0,
   outflow: 0,
   cleared: false
@@ -218,14 +219,26 @@ const isEditing = ref(false);
 const rowsSelected = ref<Array<ITransaction>>([]);
 const showMassEditModal = ref(false);
 const selectAllInput = ref(false);
+const user = ref(userStore.user);
+watch(
+  () =>
+    route.params.id,
+
+  async (newId, oldId) => {
+    if (newId) {
+      accountId.value = (newId as string);
+      await getTransactions();
+    }
+  },
+  { deep: true }
+)
 
 const getTransactions = async () => {
-
   const transactionDocs = await getDocs(
     query(
       collection(db, 'transactions'),
-      where('userId', '==', userStore.user.uid),
-      where('accountId', '==', accountId),
+      where('userId', '==', useUserStore().user.uid),
+      where('accountId', '==', accountId.value),
     )
   );
 
@@ -301,12 +314,14 @@ const handleSelectAll = (event: any) => {
 
 }
 
-const handleDelete = () => {
-  rowsSelected.value.forEach(async (row) => {
-    await transactionStore.delete(row._id)
-    const index = transactions.value.findIndex((c) => c._id === row._id);
-    transactions.value.splice(index, 1);
-  });
+const handleDelete = async () => {
+
+  await deleteRecords(rowsSelected.value);
+  // rowsSelected.value.forEach(async (row) => {
+  //   await transactionStore.delete(row._id)
+  //   const index = transactions.value.findIndex((c) => c._id === row._id);
+  //   transactions.value.splice(index, 1);
+  // });
 
   clearSelection();
   getTransactions();
@@ -340,10 +355,6 @@ const clearSelection = () => {
   rowsSelected.value.forEach((row) => { row.selected = false; })
   selectAllInput.value = false;
   rowsSelected.value = [];
-
-  // document.querySelectorAll('input[type=checkbox]')?.forEach((el: any) => {
-  //   el.checked = false
-  // });
 }
 
 const cancelEdit = () => {
@@ -359,8 +370,10 @@ defineExpose({
 });
 
 
-onMounted(() => {
-  getTransactions();
+
+onMounted(async () => {
+  accountId.value = (route.params.id as string);
+  await getTransactions();
 })
 
 </script>

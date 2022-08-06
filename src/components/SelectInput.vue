@@ -81,7 +81,7 @@ const handleKeyDown = () => {
   }
 }
 
-onMounted(() => console.log(itemRefs.value))
+// onMounted(() => console.log(itemRefs.value))
 
 defineExpose({
   clearSelection

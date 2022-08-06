@@ -26,14 +26,3 @@ app.config.globalProperties.$router = router;
 app.config.globalProperties.$db = db;
 
 app.mount('#app');
-
-const auth = getAuth();
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    await useUserStore().save(user as IUser);
-    useMainStore().loadStores();
-  } else {
-    useMainStore().resetStores();
-    router.push('/');
-  }
-});

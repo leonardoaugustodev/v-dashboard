@@ -32,7 +32,8 @@
         <table class="min-full">
           <tbody>
             <div v-for="t in transactionsToEdit" :key="t._id" class="my-2">
-              <TransactionNew :transaction="t" class="w-full " hide-save-button="true" />
+              <TransactionNew :transaction="t" class="w-full " hide-save-button="true"
+                />
             </div>
           </tbody>
         </table>
@@ -54,6 +55,7 @@
 import { ref } from "vue";
 import { ITransaction } from "../schemas/transaction";
 import { useTransactionStore } from "../store/transaction";
+import { upsert } from "../use/useTransaction";
 import TransactionNew from './TransactionNew.vue';
 
 const transactionStore = useTransactionStore();
@@ -63,13 +65,21 @@ const { transactions } = defineProps<{
 }>()
 
 const transactionsToEdit = ref([...transactions]);
+const amounts = transactionsToEdit.value.map(t => {
+  return {
+    _id: t._id,
+    amount: (t.inflow - t.outflow)
+  }
+});
 
 const closeModal = () => {
   emit('close-modal');
 }
 
-const handleSave = () => {
-  transactionStore.bulkSave(transactionsToEdit.value);
+const handleSave = async () => {
+  await upsert([
+    ...transactionsToEdit.value
+  ], amounts);
   emit('save');
   closeModal();
 }

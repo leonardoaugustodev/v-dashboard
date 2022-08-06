@@ -66,6 +66,7 @@ import { generateId } from '../utils/hash';
 import { ITransaction } from '../schemas/transaction';
 import { useTransactionStore } from '../store/transaction';
 import { useUserStore } from '../store/user';
+import { upsert } from '../use/useTransaction';
 
 const emit = defineEmits(['close', 'import'])
 const { accountId } = defineProps<{
@@ -102,9 +103,7 @@ const readFile = (event: any) => {
   }
 }
 const handleImport = async () => {
-  for (const t of transactions.value) {
-    useTransactionStore().save(t)
-  }
+  await upsert(transactions.value);
   emit('import');
 }
 
@@ -131,7 +130,7 @@ const parseOfx = (data: any) => {
       );
       const amount = Number(t.TRNAMT);
       const inflow = amount > 0 ? amount : 0;
-      const outflow = amount < 0 ? amount : 0;
+      const outflow = amount < 0 ? -amount : 0;
 
       return {
         date: momentDate.format('YYYY-MM-DD'),
@@ -155,6 +154,7 @@ const parseOfx = (data: any) => {
 .modal {
   transition: opacity 0.25s ease;
 }
+
 .max-height {
   max-height: 90%;
 }

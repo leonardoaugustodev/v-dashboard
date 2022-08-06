@@ -12,6 +12,8 @@ import NotFound from './views/NotFound.vue';
 import Budget from './views/Budget.vue';
 import Accounts from './views/Accounts.vue';
 import AccountDetail from './views/AccountDetail.vue';
+import { useUserStore } from './store/user';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -46,6 +48,33 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes: routes,
+});
+
+async function isLoggedIn(): Promise<boolean> {
+  try {
+    await new Promise((resolve, reject) =>
+      onAuthStateChanged(
+        getAuth(),
+        async (user) => {
+          if (user) {
+            resolve(user);
+          } else {
+            reject('User is not logged in');
+          }
+        },
+        (error) => reject(error)
+      )
+    );
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+router.beforeEach(async (to, from) => {
+  if (!(await isLoggedIn()) && to.name !== 'Login') {
+    return { name: 'Login' };
+  }
 });
 
 export default router;
