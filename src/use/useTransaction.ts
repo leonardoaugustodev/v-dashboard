@@ -5,6 +5,10 @@ import {
   runTransaction,
   deleteDoc,
   updateDoc,
+  getDocs,
+  query,
+  collection,
+  where,
 } from 'firebase/firestore';
 import moment from 'moment';
 import { db } from '../database/firebase';
@@ -125,5 +129,21 @@ export const deleteRecords = async (transactions: Array<ITransaction>) => {
     }
   } catch (e) {
     console.error('Error adding document: ', e);
+  }
+};
+
+export const getByDate = async (isoDate: string) => {
+  console.log(isoDate, useUserStore().user.uid)
+  try {
+    const transactionDocs = await getDocs(
+      query(
+        collection(db, 'transactions'),
+        where('userId', '==', useUserStore().user.uid),
+        where('date', '>=', isoDate)
+      )
+    );
+    return transactionDocs.docs.map(doc => doc.data());
+  } catch (error) {
+    console.log(error);
   }
 };

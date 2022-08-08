@@ -84,7 +84,7 @@ const handleSaveBudgeted = async () => {
 
   if (!rowDocs.docs.length) {
     // Create a budget row
-    const rowId = generateId('budgetRow');
+    const rowId = await generateId('budgetRow');
     await setDoc(doc(db, 'budgetRows', rowId), {
       _id: rowId,
       userId: userStore.user.uid,

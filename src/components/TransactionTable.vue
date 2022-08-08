@@ -188,7 +188,7 @@ import { useAccountStore } from '../store/account';
 import { useCategoryStore } from '../store/category';
 import { formatCurrency } from '../utils/currency';
 import TransactionMassEditModal from './TransactionMassEditModal.vue';
-import { getDoc, doc, collection, getDocs, setDoc, where, query, writeBatch } from 'firebase/firestore';
+import { getDoc, doc, collection, getDocs, setDoc, where, query, writeBatch, orderBy } from 'firebase/firestore';
 import { db } from '../database/firebase';
 import { useUserStore } from '../store/user';
 import InputSelect from './InputSelect.vue';
@@ -202,7 +202,7 @@ const route = useRoute()
 const categoryStore = useCategoryStore();
 const emit = defineEmits(['update']);
 const accountId = ref<string>();
-const transactions = ref<Array<ITransaction>>();
+const transactions = ref<Array<ITransaction>>([]);
 const defaultTransaction = {
   date: moment().format('YYYY-MM-DD'),
   day: moment().date(),
@@ -239,6 +239,7 @@ const getTransactions = async () => {
       collection(db, 'transactions'),
       where('userId', '==', useUserStore().user.uid),
       where('accountId', '==', accountId.value),
+      orderBy('date', 'desc')
     )
   );
 

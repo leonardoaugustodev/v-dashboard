@@ -120,7 +120,7 @@ export const useAccountStore = defineStore('account', {
       } else {
         try {
           const newAccount = {
-            _id: generateId('account'),
+            _id: await generateId('account'),
             userId: userStore.user.uid,
             ...account,
           };

@@ -75,7 +75,7 @@ const summaryValues = ref();
 const account = ref<IAccount>();
 const showImportModal = ref(false);
 const transactionTable = ref();
-const accountId = ref<string>();
+const accountId = ref<string>('');
 
 watch(
   () =>

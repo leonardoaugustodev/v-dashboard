@@ -67,7 +67,7 @@ export const useCategoryStore = defineStore('category', {
         if (!category._id) {
           category = {
             ...category,
-            _id: generateId('category'),
+            _id: await generateId('category'),
             userId: userStore.user.uid,
             isActive: true,
           };

@@ -91,7 +91,7 @@ export const useTransactionStore = defineStore('transaction', {
         this.transactions.splice(index, 1, mergedTransaction);
       } else {
         const newTransaction = {
-          _id: generateId('transaction'),
+          _id: await generateId('transaction'),
           userId: userStore.user.uid,
           ...transaction,
         };
