@@ -19,11 +19,11 @@
         :value="transactionToEdit.categoryId" @select="handleSelectCategory" />
     </td>
     <td>
-      <input type="number" v-model="transactionToEdit.inflow" @change="notifyAmountChange"
+      <input type="number" v-model="transactionToEdit.inflow"
         class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
     <td>
-      <input type="number" v-model="transactionToEdit.outflow" @change="notifyAmountChange"
+      <input type="number" v-model="transactionToEdit.outflow"
         class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
     </td>
 
@@ -114,7 +114,7 @@ const handleSelectAccount = (accountSelected: string) => {
 }
 
 const resetFields = () => {
-  transactionToEdit.value = { ...defaultTransaction };
+  transactionToEdit.value = { ...defaultTransaction as ITransaction };
   if (categoryInput && categoryInput.value) {
     categoryInput.value.clearSelection();
   }
@@ -126,12 +126,6 @@ const focusDate = () => {
   }
 }
 
-const notifyAmountChange = () => {
-  emit('amount-change', (
-    transactionToEdit.value.inflow -
-    initialAmounts.inflow -
-    (transactionToEdit.value.outflow - initialAmounts.outflow)))
-}
 
 onMounted(() => {
   nextTick(() => {

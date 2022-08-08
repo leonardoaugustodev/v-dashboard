@@ -59,6 +59,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+// @ts-ignore
 import { parse as parseOFX } from 'ofx-js';
 import moment from 'moment';
 import TransactionNew from './TransactionNew.vue';

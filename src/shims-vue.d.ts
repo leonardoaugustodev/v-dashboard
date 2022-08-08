@@ -4,3 +4,7 @@ declare module '*.vue' {
   export default Component;
 }
 
+declare module 'ofx-js'{
+  const parse: ReturnType<any>;
+  export default parse;
+}
