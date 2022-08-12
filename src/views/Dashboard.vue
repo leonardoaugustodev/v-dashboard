@@ -5,9 +5,11 @@
     <div class="mt-4">
       <div class="flex flex-wrap -mx-6">
 
-        <div class="w-full px-6 sm:w-1/2 xl:w-1/3">
-          <div class="flex flex-col items-start justify-center px-5 py-5 bg-white rounded-md shadow-sm">
-            <h2 class="mb-4 text-lg text-gray-400">Last 30 days</h2>
+        <div class="w-full px-6">
+          <div class="flex items-start justify-center px-5 py-5 bg-white rounded-lg shadow-sm h-full">
+
+
+            <!-- <h2 class="mb-4 text-lg text-gray-400">Top 5 categories</h2>
             <table class="min-w-full">
               <thead>
                 <tr>
@@ -49,23 +51,39 @@
 
                 </tr>
               </tbody>
-            </table>
+            </table> -->
+            <div class="flex flex-col items-center w-1/3"></div>
+            <div class="flex flex-col items-center w-1/3 h-56 justify-end">
+              <h3 class="self-start font-bold mb-2">Week Outflows</h3>
+              <div class="w-full flex gap-3 h-full">
+                <div v-for="summary in transactionSummary" :key="summary.name" class="flex flex-col items-center h-full">
+                  <div
+                    class="flex items-center justify-end flex-col bg-white border border-gray-50 rounded-lg shadow-lg h-full">
+                    <div
+                      class="bg-blue-400 hover:brightness-110 rounded-lg shadow-sm text-xs text-center pt-1 text-white"
+                      :style="`height: ${summary.percent}%; width: 40px`">
+                      {{ summary.value }}
+                    </div>
+                  </div>
+                  <div class="text-sm mt-3 text-gray-400">{{ summary.formatedDate }}</div>
+                </div>
+              </div>
+
+            </div>
+            <div class="flex flex-col items-center w-1/3">
+
+              <div class="my-2 w-full">
+                <h3 class="self-start font-bold mb-2">Accounts</h3>
+                <div v-for="account in useAccountStore().accounts" :key="account._id" class="my-2">
+                  <AccountBalanceCard :account="account" />
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
 
-        <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 sm:mt-0">
-          <div class="flex flex-col items-start justify-center px-5 py-5 bg-white rounded-md shadow-sm">
-            <h2 class="mb-4 text-lg text-gray-400">Last 7 days</h2>
-            <BarChart class="w-full" v-bind="barChartProps" />
-          </div>
-        </div>
-
-        <div class="w-full px-6 mt-6 sm:w-1/2 xl:w-1/3 xl:mt-0">
-          <div class="flex flex-col items-start justify-center px-5 py-5 bg-white rounded-md shadow-sm">
-            <h2 class="mb-4 text-lg text-gray-400">Your cards</h2>
-            <CreditCard />
-          </div>
-        </div>
       </div>
     </div>
 
@@ -82,21 +100,21 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { Chart, registerables } from 'chart.js';
-import { BarChart, useBarChart } from 'vue-chart-3';
 import { useUserStore } from "../store/user";
 import { useCategoryStore } from "../store/category";
+import { useAccountStore } from "../store/account";
 import { getByDate } from "../use/useTransaction";
 import moment from "moment";
 import { ITransaction } from "../schemas/transaction";
 import { formatCurrency } from "../utils/currency";
 import CreditCard from "../components/CreditCard.vue";
-
-Chart.register(...registerables);
+import AccountBalanceCard from "../components/AccountBalanceCard.vue";
 
 interface ISummary {
   name: string;
+  formatedDate: string;
   value: number;
+  percent?: number;
 }
 
 const last30DaysTransactions = ref<Array<ITransaction>>([]);
@@ -107,15 +125,12 @@ const last7DaysLabels = [0, 1, 2, 3, 4, 5, 6].map((n) => {
   return moment().subtract(n, 'days').format('DD/MM')
 });
 
-const negativeSummary = ref<{ [key: string]: number }>({});
-const positiveSummary = ref<{ [key: string]: number }>({});
+const transactionSummary = ref<Array<ISummary>>([]);
 const categorySummary = ref<Array<ISummary>>([]);
 
 const getLastTransactions = async () => {
   const dueDate = moment().subtract(30, 'days');
   last30DaysTransactions.value = await getByDate(dueDate.format('YYYY-MM-DD')) as unknown as Array<ITransaction>;
-
-
 }
 
 const summarizeLast7Days = () => {
@@ -123,18 +138,35 @@ const summarizeLast7Days = () => {
     return moment().subtract(n, 'days').format('YYYY-MM-DD')
   });
 
-  last7Days.forEach(day => {
-    negativeSummary.value[day] = 0;
-    positiveSummary.value[day] = 0;
-  });
+  for (const day of last7Days) {
+    transactionSummary.value.push({
+      name: day,
+      formatedDate: moment(day).format('MMM DD'),
+      value: 0
+    })
+  }
 
-  last7Days.forEach(day => {
-    const transactions = last30DaysTransactions.value.filter(t => t.date === day);
-    for (const transaction of transactions) {
-      negativeSummary.value[day] -= transaction.outflow;
-      positiveSummary.value[day] += transaction.inflow;
+  const last7Day = moment().subtract(7, 'days').format('YYYY-MM-DD');
+  const transactions = last30DaysTransactions.value.filter(t => t.date >= last7Day);
+
+  for (const transaction of transactions) {
+
+    const existing = transactionSummary.value.find(t => t.name === transaction.date);
+
+    if (existing) {
+      existing.value += transaction.outflow;
+    }
+  }
+
+  const maximumValue = Math.max(...transactionSummary.value.filter(o => o.value > 0).map(o => o.value));
+
+  transactionSummary.value = transactionSummary.value.map(t => {
+    return {
+      ...t,
+      percent: (t.value / maximumValue) * 100
     }
   });
+
 }
 
 const summarizeByCategory = () => {
@@ -158,31 +190,10 @@ const summarizeByCategory = () => {
   categorySummary.value = categorySummary.value.slice(0, 5);
 }
 
-const chartData = computed(() => ({
-  labels: Object.keys(positiveSummary.value),
-  datasets: [
-    {
-      label: 'Incomes',
-      data: Object.values(positiveSummary.value),
-      backgroundColor: ['green'],
-    },
-    {
-      label: 'Outcomes',
-      data: Object.values(negativeSummary.value),
-      backgroundColor: ['red'],
-    },
-  ],
-}));
-
-const { barChartProps, barChartRef } = useBarChart({
-  chartData,
-});
-
 onMounted(async () => {
   await getLastTransactions();
   summarizeLast7Days();
   summarizeByCategory();
-
 });
 
 </script>

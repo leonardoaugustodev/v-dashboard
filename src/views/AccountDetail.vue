@@ -91,7 +91,6 @@ watch(
 )
 
 const getAccount = async () => {
-  console.log('getAccount', accountId.value);
   if (accountId.value) {
     const docSnap = await getDoc(doc(db, 'accounts', accountId.value));
     if (docSnap.exists()) {

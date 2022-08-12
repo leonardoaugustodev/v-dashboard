@@ -16,8 +16,9 @@
         class="inline-flex px-2 text-xs font-semibold leading-5 text-indigo-800 bg-indigo-100 rounded-full">
         {{ formatCurrency(row.budgeted) }}
       </span>
-      <input v-if="editBudgeted" @focus="($event.target as HTMLInputElement).select()" @keypress.enter="handleSaveBudgeted"
-        @keydown.esc="cancelChange" ref="budgetedInput" type="number" v-model="editableRow.budgeted"
+      <input v-if="editBudgeted" @focus="($event.target as HTMLInputElement).select()"
+        @keypress.enter="handleSaveBudgeted" @keydown.esc="cancelChange" ref="budgetedInput" type="number"
+        v-model="editableRow.budgeted"
         class="w-20 h-6 text-xs font-semibold leading-5 text-indigo-800 bg-indigo-100 border-indigo-200 rounded-full">
     </td>
 

@@ -3,28 +3,32 @@
   <!-- New Transaction -->
   <tr @keydown.esc="handleCancelEdit" @keydown.enter.stop="handleSave">
     <td>
-      <input type="date" ref="dateInput" v-model="transactionToEdit.date"
-        class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" placeholder="Select date">
+      <input type="date" ref="dateInput" v-model="transactionToEdit.date" :class="inputClass" placeholder="Select date">
     </td>
     <td>
-      <SelectInput :options="accountStore.getAccountsPicklist" :value="transactionToEdit.accountId"
-        @select="handleSelectAccount" />
+      <select v-model="transactionToEdit.accountId" :class="inputClass" class="input__select">
+        <option v-for="option in accountStore.getAccountsPicklist" :key="option.value" :value="option.value">{{
+            option.label
+        }}</option>
+      </select>
     </td>
     <td>
-      <input type="text" ref="labelInput" v-model="transactionToEdit.memo"
-        class="w-full text-sm leading-0 border-0 border-b-2 border-gray-300" />
+      <input type="text" ref="labelInput" v-model="transactionToEdit.memo" :class="inputClass" class="input__memo" />
     </td>
     <td>
-      <SelectInput ref="categoryInput" :options="categoryStore.getCategoriesPicklist"
-        :value="transactionToEdit.categoryId" @select="handleSelectCategory" />
+      <select v-model="transactionToEdit.categoryId" :class="inputClass" class="input__select">
+        <option v-for="option in categoryStore.getCategoriesPicklist" :key="option.value" :value="option.value">{{
+            option.label
+        }}</option>
+      </select>
     </td>
     <td>
-      <input type="number" v-model="transactionToEdit.inflow"
-        class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
+      <input type="number" v-model="transactionToEdit.inflow" :class="inputClass"
+        class="text-right w-auto text-green-700" />
     </td>
     <td>
-      <input type="number" v-model="transactionToEdit.outflow"
-        class="w-full text-sm text-right leading-0 border-0 border-b-2 border-gray-300">
+      <input type="number" v-model="transactionToEdit.outflow" :class="inputClass"
+        class="text-right w-min text-red-700" />
     </td>
 
     <td class="text-center" v-if="showSaveButton">
@@ -49,9 +53,7 @@ import moment from 'moment';
 import { useTransactionStore } from '../store/transaction';
 import { useCategoryStore } from '../store/category';
 import { useAccountStore } from '../store/account';
-import { formatCurrency } from '../utils/currency';
 import { ITransaction } from '../schemas/transaction'
-import SelectInput from './SelectInput.vue'
 import { useRoute } from 'vue-router';
 import { upsert } from '../use/useTransaction';
 
@@ -77,6 +79,8 @@ const defaultTransaction = {
   outflow: 0,
   cleared: false
 }
+
+const inputClass = 'text-sm leading-0 border-0 border-b border-zinc-200';
 
 const transactionToEdit = ref<ITransaction>(transaction || { ...defaultTransaction });
 
@@ -135,5 +139,12 @@ onMounted(() => {
 
 </script>
 
-<style>
+<style scoped>
+.input__select {
+  min-width: 200px;
+}
+
+.input__memo {
+  min-width: 300px;
+}
 </style>

@@ -10,34 +10,23 @@
         <table class="min-w-full">
           <thead>
             <tr>
-              <th
-                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Date
+
+              <th v-for="column in columns" :key="column.field" @click="sort(column.field)"
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-gray-500 uppercase bg-gray-100 border-b border-gray-200 hover:underline cursor-pointer">
+
+                <div class="flex gap-1 items-center" :class="`justify-${column.align}`">
+                  <svg v-if="column.sortable" :class="column.sortDirection === 'desc' ? 'rotate-180' : ''"
+                    xmlns="http://www.w3.org/2000/svg" class="transition-transform h-5 w-5" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  {{ column.label }}
+                </div>
+
               </th>
-              <th
-                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Account
-              </th>
-              <th
-                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Memo
-              </th>
-              <th
-                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Category
-              </th>
-              <th
-                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Inflow
-              </th>
-              <th
-                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Outflow
-              </th>
-              <th
-                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-center text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
-                Cleared
-              </th>
+
             </tr>
           </thead>
 
@@ -53,7 +42,7 @@
                       v-model="selectAllInput" />
 
                     <button @click="handleEdit" :disabled="!!rowsSelected.length"
-                      class="text-green-600 hover:text-green-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                      class="text-green-600 hover:text-green-800 p-2 hover:underline rounded-md flex justify-between items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
                           d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -62,8 +51,8 @@
                       <span class="ml-1">Transaction</span>
                     </button>
 
-                    <button @click="handleMassEdit"
-                      class="text-blue-600 hover:text-blue-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                    <button @click="handleMassEdit" :disabled="!rowsSelected.length"  
+                      class="text-blue-600 hover:text-blue-800 p-2 hover:underline rounded-md flex justify-between items-center hover:disabled:no-underline disabled:text-zinc-300 hover:disabled:bg-transparent">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
                         <path fill-rule="evenodd"
@@ -73,8 +62,8 @@
                       <span class="ml-1">Edit</span>
                     </button>
 
-                    <button @click="handleMassClearUnclear(true)"
-                      class="text-blue-600 hover:text-blue-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                    <button @click="handleMassClearUnclear(true)" :disabled="!rowsSelected.length"
+                      class="text-blue-600 hover:text-blue-800 p-2 hover:underline rounded-md flex justify-between items-center hover:disabled:no-underline disabled:text-zinc-300 hover:disabled:bg-transparent">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -83,8 +72,8 @@
                       <span class="ml-1">Clear</span>
                     </button>
 
-                    <button @click="handleMassClearUnclear(false)"
-                      class="text-purple-600 hover:text-purple-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                    <button @click="handleMassClearUnclear(false)" :disabled="!rowsSelected.length"
+                      class="text-purple-600 hover:text-purple-800 p-2 hover:underline rounded-md flex justify-between items-center hover:disabled:no-underline disabled:text-zinc-300 hover:disabled:bg-transparent">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -96,8 +85,8 @@
                     <!-- <InputSelect /> -->
                   </div>
 
-                  <button @click="handleDelete"
-                    class="text-red-600 hover:text-red-800 p-2 hover:bg-gray-200 rounded-md flex justify-between items-center">
+                  <button @click="handleDelete" :disabled="!rowsSelected.length"
+                    class="text-red-600 hover:text-red-800 p-2 hover:underline rounded-md flex justify-between items-center hover:disabled:no-underline disabled:text-zinc-300 hover:disabled:bg-transparent">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd"
                         d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -108,12 +97,13 @@
                 </div>
               </td>
             </tr>
+
             <TransactionNew v-if="isEditing" @keydown.esc="cancelEdit" :account-id="accountId" @cancel="cancelEdit"
               @add-transaction="handleTransactionAdded" :hide-save-button="false" />
 
-            <tr v-for="(u, index) in transactions" :key="index" class="py-1">
+            <tr v-for="(u, index) in transactions" :key="index">
 
-              <td class=" border-b border-gray-200 whitespace-nowrap">
+              <td class=" border-b border-gray-200 whitespace-nowrap py-3">
                 <div class="flex items-center">
                   <input v-model="u.selected" class="mr-4 ml-2 border-gray-300 rounded" type="checkbox"
                     @change="handleSelect(u, $event)" />
@@ -123,12 +113,11 @@
                 </div>
               </td>
 
-              <td class=" border-b border-gray-200 whitespace-nowrap">
+              <td class=" border-b border-gray-200 whitespace-nowrap text-center">
                 <span
                   class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
                       u.account?.name
                   }}</span>
-
               </td>
 
               <td class=" border-b border-gray-200 whitespace-nowrap">
@@ -137,13 +126,12 @@
                 </div>
               </td>
 
-              <td class=" border-b border-gray-200 whitespace-nowrap">
+              <td class=" border-b border-gray-200 whitespace-nowrap text-center">
                 <span
                   class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">{{
                       u.category?.name
                   }}</span>
               </td>
-
 
               <td class=" text-sm leading-5 text-right text-green-700 border-b border-gray-200 whitespace-nowrap">
                 {{ formatCurrency(u.inflow) }}
@@ -192,7 +180,7 @@ import { getDoc, doc, collection, getDocs, setDoc, where, query, writeBatch, ord
 import { db } from '../database/firebase';
 import { useUserStore } from '../store/user';
 import InputSelect from './InputSelect.vue';
-import { onBeforeRouteUpdate, useRoute } from 'vue-router';
+import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import { deleteRecords } from '../use/useTransaction';
 
 
@@ -220,6 +208,51 @@ const rowsSelected = ref<Array<ITransaction>>([]);
 const showMassEditModal = ref(false);
 const selectAllInput = ref(false);
 const user = ref(userStore.user);
+const columns = ref([
+  {
+    field: 'date',
+    label: 'Date',
+    sortable: true,
+    sortDirection: 'asc',
+    align: 'start'
+  },
+  {
+    field: 'account',
+    label: 'Account',
+    sortable: true,
+    sortDirection: 'asc',
+    align: 'center'
+  }, {
+    field: 'memo',
+    label: 'Memo',
+    sortable: true,
+    sortDirection: 'asc',
+    align: 'start'
+  }, {
+    field: 'category',
+    label: 'Category',
+    sortable: true,
+    sortDirection: 'asc',
+    align: 'center'
+  }, {
+    field: 'inflow',
+    label: 'Inflow',
+    sortable: true,
+    sortDirection: 'asc',
+    align: 'end'
+  }, {
+    field: 'outflow',
+    label: 'Outflow',
+    sortable: true,
+    sortDirection: 'asc',
+    align: 'end'
+  }, {
+    field: 'cleared',
+    label: 'Cleared',
+    sortable: false,
+    align: 'center'
+  }]
+);
 watch(
   () =>
     route.params.id,
@@ -232,6 +265,11 @@ watch(
   },
   { deep: true }
 )
+
+onBeforeRouteLeave((to, from, next) => {
+  clearSelection();
+  next();
+});
 
 const getTransactions = async () => {
   const transactionDocs = await getDocs(
@@ -255,16 +293,14 @@ const getTransactions = async () => {
       account = useAccountStore().getAccount(t.accountId)
     }
 
+    t.selected = false;
+
     return {
       ...t,
       category,
       account
     };
   });
-
-  // console.log(transactionStore.transactions);
-  // console.log('getting transactions');
-  // transactions.value = transactionStore.getTransactionsByAccountId(accountId);
 }
 
 const handleTransactionAdded = () => {
@@ -364,6 +400,26 @@ const cancelEdit = () => {
 
 const reload = () => {
   getTransactions();
+}
+
+const sort = (field: string) => {
+
+  const column = columns.value.find(c => c.field === field);
+
+
+  if (column) {
+    if (!column.sortable) return;
+
+    const direction = column?.sortDirection === "asc" ? 1 : -1;
+    column.sortDirection = column?.sortDirection === "asc" ? 'desc' : 'asc';
+
+    transactions.value = transactions.value.sort((a, b) => {
+      if (a[field as keyof ITransaction] < b[field as keyof ITransaction]) return -direction;
+      else if (a[field as keyof ITransaction] > b[field as keyof ITransaction]) return direction;
+      else return 0;
+    });
+  }
+
 }
 
 defineExpose({

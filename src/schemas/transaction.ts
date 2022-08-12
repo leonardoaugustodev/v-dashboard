@@ -16,5 +16,6 @@ export interface ITransaction  extends Database{
   outflow: number;
   cleared: boolean;
   isEditing?: boolean;
-  selected? :boolean;
+  selected?: boolean;
+  bankCode?: string;
 }

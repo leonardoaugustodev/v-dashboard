@@ -35,10 +35,40 @@
             class="block w-full text-sm text-gray-900 bg-gray-50 border border-gray-300 cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
             id="file_input" type="file">
 
-          <div v-if="showNewTransactions" class="flex flex-col items-center my-2">
-            <TransactionNew v-for="transaction in transactions" :key="transaction._id" :transaction="transaction"
-              :accountId="accountId" :hideSaveButton="true" />
-          </div>
+          <table v-if="showNewTransactions" class="min-full">
+            <thead>
+              <tr>
+                <th
+                  class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-center text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                  Date
+                </th>
+                <th
+                  class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-center text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                  Account
+                </th>
+                <th
+                  class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                  Memo
+                </th>
+                <th
+                  class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-center text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                  Category
+                </th>
+                <th
+                  class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                  Inflow
+                </th>
+                <th
+                  class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                  Outflow
+                </th>
+              </tr>
+            </thead>
+            <tbody class="h-32 overflow-y-scroll">
+              <TransactionNew v-for="transaction in transactions" :key="transaction._id" :transaction="transaction"
+                :accountId="accountId" :hideSaveButton="true" />
+            </tbody>
+          </table>
         </div>
 
         <!--Footer-->
@@ -59,8 +89,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// @ts-ignore
-import { parse as parseOFX } from 'ofx-js';
+
 import moment from 'moment';
 import TransactionNew from './TransactionNew.vue';
 import { generateId } from '../utils/hash';
@@ -68,6 +97,7 @@ import { ITransaction } from '../schemas/transaction';
 import { useTransactionStore } from '../store/transaction';
 import { useUserStore } from '../store/user';
 import { upsert } from '../use/useTransaction';
+import axios from 'axios';
 
 const emit = defineEmits(['close', 'import'])
 const { accountId } = defineProps<{
@@ -92,7 +122,6 @@ const readFile = (event: any) => {
     }
 
     else {
-      content.value = "check the console for file output";
       reader.onload = (res) => {
         // console.log(res.target?.result);
         parseOfx(res.target?.result);
@@ -116,36 +145,24 @@ const handleCancel = () => {
   closeModal();
 }
 
-const parseOfx = (data: any) => {
+const parseOfx = async (data: any) => {
 
-  parseOFX(data).then((ofxData: any) => {
-    const statementResponse = ofxData.OFX.BANKMSGSRSV1.STMTTRNRS.STMTRS;
-    // const accountId = statementResponse.BANKACCTFROM.ACCTID;
-    const transactionStatement = statementResponse.BANKTRANLIST.STMTTRN;
-    transactions.value = transactionStatement.map((t: any) => {
-
-      const momentDate = moment([
-        `${t.DTPOSTED}`.substring(0, 4),
-        Number(`${t.DTPOSTED}`.substring(4, 6)) - 1,
-        `${t.DTPOSTED}`.substring(6, 8)]
-      );
-      const amount = Number(t.TRNAMT);
-      const inflow = amount > 0 ? amount : 0;
-      const outflow = amount < 0 ? -amount : 0;
-
-      return {
-        date: momentDate.format('YYYY-MM-DD'),
-        memo: t.MEMO,
-        accountId,
-        categoryId: '',
-        outflow,
-        inflow,
-        cleared: false
-      }
-    });
-    showNewTransactions.value = true;
-    showImportButton.value = true;
+  const result = await axios.post(`${import.meta.env.VITE_FUNCTIONS_URL}/parseOfx`, data, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Access-Control-Allow-Origin': '*'
+    }
   });
+
+  transactions.value = result.data.map((t: ITransaction) => {
+    return {
+      ...t,
+      accountId,
+      categoryId: ''
+    }
+  });
+  showNewTransactions.value = true;
+  showImportButton.value = true;
 }
 
 

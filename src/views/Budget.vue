@@ -13,7 +13,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div class="mx-5 flex flex-col justify-center items-center">
+          <div class="mx-5 flex flex-col justify-center items-center w-36">
             <h4 class="text-2xl font-semibold text-gray-700">{{ budgetMonth }}</h4>
             <div class="text-gray-500">{{ budgetYear }}</div>
           </div>
@@ -310,7 +310,7 @@ const loadBudget = async (month: number, year: number) => {
         r.children.forEach(c => {
           if (c.categoryId === transaction.categoryId) {
             c.activity += (transaction.inflow - transaction.outflow);
-            c.balance += c.activity;
+            c.balance += (transaction.inflow - transaction.outflow);
           }
         })
       });
@@ -428,7 +428,6 @@ const handleSaveCategoryModal = () => {
 
 
 const handleSelectRow = (row: any, checked: boolean) => {
-  console.log(row, checked);
   if (checked) {
     selectedRows.value.push(row);
   }

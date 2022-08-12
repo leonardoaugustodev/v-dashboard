@@ -162,6 +162,5 @@ const user = ref<User>({
 
 const register = () => {
   const data = JSON.parse(JSON.stringify(user.value));
-  console.log("Registered: ", data);
 };
 </script>

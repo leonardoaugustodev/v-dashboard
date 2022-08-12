@@ -133,7 +133,6 @@ export const deleteRecords = async (transactions: Array<ITransaction>) => {
 };
 
 export const getByDate = async (isoDate: string) => {
-  console.log(isoDate, useUserStore().user.uid)
   try {
     const transactionDocs = await getDocs(
       query(

@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root{
+  --vs-border-width: 0px !important;
+}
+
 ::-webkit-scrollbar {
   width: 7px;
 }

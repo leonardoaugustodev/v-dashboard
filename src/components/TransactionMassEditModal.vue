@@ -3,7 +3,7 @@
   <div :class="`modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center`" @keyup.esc="closeModal">
     <div @click="closeModal" class="absolute w-full h-full bg-gray-900 opacity-50 modal-overlay"></div>
 
-    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container md:max-w-4xl">
+    <div class="z-50 w-11/12 mx-auto overflow-y-auto bg-white rounded shadow-lg modal-container max-w-fit">
       <div
         class="absolute top-0 right-0 z-50 flex flex-col items-center mt-4 mr-4 text-sm text-white cursor-pointer modal-close">
         <svg class="text-white fill-current" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -30,11 +30,38 @@
 
         <!--Body-->
         <table class="min-full">
-          <tbody>
-            <div v-for="t in transactionsToEdit" :key="t._id" class="my-2">
-              <TransactionNew :transaction="t" class="w-full " hide-save-button="true"
-                />
-            </div>
+          <thead>
+            <tr>
+              <th
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                Date
+              </th>
+              <th
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                Account
+              </th>
+              <th
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                Memo
+              </th>
+              <th
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                Category
+              </th>
+              <th
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                Inflow
+              </th>
+              <th
+                class="px-2 py-3 text-xs font-medium leading-4 tracking-wider text-right text-gray-500 uppercase bg-gray-100 border-b border-gray-200">
+                Outflow
+              </th>
+             
+            </tr>
+          </thead>
+          <tbody class="max-w-screen-md">
+            <TransactionNew v-for="t in transactionsToEdit" :key="t._id" :transaction="t" class="w-full "
+              hide-save-button="true" />
           </tbody>
         </table>
 
